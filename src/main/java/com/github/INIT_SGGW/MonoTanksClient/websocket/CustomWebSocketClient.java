@@ -121,6 +121,16 @@ public class CustomWebSocketClient extends WebSocketClient {
                     System.out.println("Warning: Already made action during this tick");
                     break;
 
+                case CONNECTION_ACCEPTED:
+                    System.out.println("Connection accepted");
+                    break;
+
+                case CONNECTION_REJECTED:
+                    System.out.println("Connection rejected");
+                    packet.getPayload().get("reason").asText();
+                    System.out.println("Reason: " + packet.getPayload().get("reason").asText());
+                    break;
+
                 case PONG:
                     System.out.println("Received pong packet. This should not happen");
                     break;
