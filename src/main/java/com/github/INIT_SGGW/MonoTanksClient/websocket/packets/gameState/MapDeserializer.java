@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Bullet;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Turret;
 
 import java.io.IOException;

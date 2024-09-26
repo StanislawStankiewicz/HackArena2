@@ -148,7 +148,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                         JsonNode payload = packet.getPayload();
                         GameState gameState = this.mapper.treeToValue(payload, GameState.class);
                         AgentResponse agentResponse = this.agent.nextMove(gameState);
-                        agentResponse.payload.put("gameStateId", gameState.getId());
+                        agentResponse.payload.put("gameStateId", gameState.id());
                         String messageToSend = this.mapper.writeValueAsString(agentResponse);
                         yield Optional.of(messageToSend);
 
