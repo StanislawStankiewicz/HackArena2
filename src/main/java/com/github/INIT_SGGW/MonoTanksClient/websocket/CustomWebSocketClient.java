@@ -1,6 +1,8 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.Agent.MyAgent;
@@ -27,8 +29,19 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
+
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new Jdk8Module());
+
+        // Warm-up the mapper
+        try {
+            this.mapper.readValue(GameStatePayload.payload, GameState.class);
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
         this.executorService = Executors.newCachedThreadPool();
         this.semaphore = new Semaphore(1);
     }
@@ -42,9 +55,7 @@ public class CustomWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         executorService.submit(() -> {
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.registerModule(new Jdk8Module());
-                Packet packet = mapper.readValue(message, Packet.class);
+                Packet packet = this.mapper.readValue(message, Packet.class);
 
                 switch (packet.getType()) {
                     case LOBBY_DATA:
@@ -134,11 +145,13 @@ public class CustomWebSocketClient extends WebSocketClient {
 
                 case GAME_STATE -> {
                     try {
-                        GameState gameState = this.mapper.readValue(packet.getPayload().toString(), GameState.class);
+                        JsonNode payload = packet.getPayload();
+                        GameState gameState = this.mapper.treeToValue(payload, GameState.class);
                         AgentResponse agentResponse = this.agent.nextMove(gameState);
                         agentResponse.payload.put("gameStateId", gameState.getId());
                         String messageToSend = this.mapper.writeValueAsString(agentResponse);
                         yield Optional.of(messageToSend);
+
                     } catch (RuntimeException e) {
                         System.out.println("Error while processing game state: " + e.getMessage());
                         throw new RuntimeException(e);
@@ -181,6 +194,7 @@ public class CustomWebSocketClient extends WebSocketClient {
             };
 
             response.ifPresent(this::send);
+
         } catch (JsonProcessingException e) {
             System.out.println("Error while processing packet: " + e.getMessage());
             throw new RuntimeException(e);
