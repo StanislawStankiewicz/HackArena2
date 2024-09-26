@@ -1,7 +1,6 @@
 package com.github.websocketclient.websocket;
 
 import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.Packet;
@@ -28,8 +27,6 @@ public class PacketDeserializationTest {
         assertEquals(null, packet.getPayload());
     }
 
-
-    // Serialization test of a Pong packet. So we convert class into a string. It also should have empty payload.
     @Test
     public void testPacketSerializationSimple() throws JsonProcessingException {
         Packet packet = new Packet(PacketType.PONG, new ObjectMapper().createObjectNode());

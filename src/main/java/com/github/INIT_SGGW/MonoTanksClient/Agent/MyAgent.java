@@ -4,8 +4,10 @@ import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.MoveDirection;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.RotationDirection;
-import com.github.INIT_SGGW.MonoTanksClient.Game.*;
-
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEndPlayer;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 import java.util.Optional;
 
 public class MyAgent extends Agent {
@@ -14,7 +16,7 @@ public class MyAgent extends Agent {
 
     public MyAgent(LobbyData lobbyData) {
         super(lobbyData);
-        this.myId = lobbyData.getPlayerId();
+        this.myId = lobbyData.playerId();
     }
 
     @Override
@@ -34,12 +36,15 @@ public class MyAgent extends Agent {
             }
         } else if (random < 0.66) {
             double tankRandom = Math.random();
-            RotationDirection tankRotation = tankRandom < 0.33 ? RotationDirection.LEFT : tankRandom < 0.66 ? RotationDirection.RIGHT : null;
+            RotationDirection tankRotation = tankRandom < 0.33 ? RotationDirection.LEFT
+                    : tankRandom < 0.66 ? RotationDirection.RIGHT : null;
 
             double turretRandom = Math.random();
-            RotationDirection turretRotation = turretRandom < 0.33 ? RotationDirection.LEFT : turretRandom < 0.66 ? RotationDirection.RIGHT : null;
+            RotationDirection turretRotation = turretRandom < 0.33 ? RotationDirection.LEFT
+                    : turretRandom < 0.66 ? RotationDirection.RIGHT : null;
 
-            return AgentResponse.createRotationResponse(Optional.ofNullable(tankRotation), Optional.ofNullable(turretRotation));
+            return AgentResponse.createRotationResponse(Optional.ofNullable(tankRotation),
+                    Optional.ofNullable(turretRotation));
         } else {
             return AgentResponse.createShootResponse();
         }
@@ -49,13 +54,13 @@ public class MyAgent extends Agent {
     @Override
     public void onGameEnd(GameEnd gameEnd) {
         System.out.println("Game ended");
-        Player winner = gameEnd.getPlayers()[0];
-        if (winner.getId().equals(this.myId)) {
+        GameEndPlayer winner = gameEnd.players()[0];
+        if (winner.id().equals(this.myId)) {
             System.out.println("I won!");
         }
 
-        for (Player player : gameEnd.getPlayers()) {
-            System.out.println(player.getNickname() + " - " + player.getScore());
+        for (GameEndPlayer player : gameEnd.players()) {
+            System.out.println(player.nickname() + " - " + player.score());
         }
     }
 }

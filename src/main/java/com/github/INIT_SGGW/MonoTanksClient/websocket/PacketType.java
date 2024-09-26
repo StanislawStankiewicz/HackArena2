@@ -13,43 +13,17 @@ public enum PacketType {
 
     CONNECTION_ACCEPTED,
     CONNECTION_REJECTED,
-//    {
-//        reason: String,
-//    },
 
     LOBBY_DATA,
-    // (LobbyData),
-
-
     LOBBY_DELETED,
-
-
     GAME_START,
 
     GAME_STATE,
-            // (RawGameState),
-
-
     TANK_MOVEMENT,
-//            {
-//        game_state_id: String,
-//                direction: MoveDirection,
-//    },
-
     TANK_ROTATION,
-//            {
-//        game_state_id: String,
-//                tank_rotation: Option<Rotation>,
-//        turret_rotation: Option<Rotation>,
-//    },
-
     TANK_SHOOT,
-//    {
-//        game_state_id: String,
-//    },
 
     GAME_END,
-//  (GameEnd),
 
     // Warnings
     PLAYER_ALREADY_MADE_ACTION_WARNING,

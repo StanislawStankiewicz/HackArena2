@@ -24,7 +24,6 @@ public abstract class AgentResponse {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, Object> payload = new HashMap<>();
 
-
     @JsonTypeName("tankMovement")
     @Getter
     @Setter
@@ -46,7 +45,8 @@ public abstract class AgentResponse {
     @ToString
     public static class RotationResponse extends AgentResponse {
 
-        public RotationResponse(Optional<RotationDirection> tankRotationDirection, Optional<RotationDirection> turretRotationDirection) {
+        public RotationResponse(Optional<RotationDirection> tankRotationDirection,
+                Optional<RotationDirection> turretRotationDirection) {
             this.payload.put("tankRotation", tankRotationDirection.orElse(null));
             this.payload.put("turretRotation", turretRotationDirection.orElse(null));
         }
@@ -55,7 +55,7 @@ public abstract class AgentResponse {
         public PacketType toPacketType() {
             return PacketType.TANK_ROTATION;
         }
-}
+    }
 
     @JsonTypeName("tankShoot")
     @ToString
@@ -70,7 +70,8 @@ public abstract class AgentResponse {
         return new Move(direction);
     }
 
-    public static AgentResponse createRotationResponse(Optional<RotationDirection> tankRotationDirection, Optional<RotationDirection> turretRotationDirection) {
+    public static AgentResponse createRotationResponse(Optional<RotationDirection> tankRotationDirection,
+            Optional<RotationDirection> turretRotationDirection) {
         return new RotationResponse(tankRotationDirection, turretRotationDirection);
     }
 

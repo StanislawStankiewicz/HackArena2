@@ -1,4 +1,4 @@
-package com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction;
+package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -7,24 +7,26 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum MoveDirection {
-    FORWARD(0),
-    BACKWARD(1);
+public enum Direction {
+    UP(0),
+    RIGHT(1),
+    DOWN(2),
+    LEFT(3);
 
     private final int value;
 
-    @JsonValue
-    public int toValue() {
-        return value;
-    }
-
     @JsonCreator
-    public static MoveDirection fromValue(int value) {
-        for (MoveDirection direction : MoveDirection.values()) {
-            if (direction.getValue() == value) {
+    public static Direction fromValue(int value) {
+        for (Direction direction : Direction.values()) {
+            if (direction.value == value) {
                 return direction;
             }
         }
         throw new IllegalArgumentException("Unknown value: " + value);
+    }
+
+    @JsonValue
+    public int toValue() {
+        return value;
     }
 }

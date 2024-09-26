@@ -6,9 +6,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.Agent.MyAgent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
-import com.github.INIT_SGGW.MonoTanksClient.Game.GameEnd;
-import com.github.INIT_SGGW.MonoTanksClient.Game.GameState;
-import com.github.INIT_SGGW.MonoTanksClient.Game.LobbyData;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.ConnectionRejected;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -36,7 +38,6 @@ public class CustomWebSocketClient extends WebSocketClient {
         System.out.println("[System] 🎉 Successfully connected to the server");
     }
 
-
     @Override
     public void onMessage(String message) {
         executorService.submit(() -> {
@@ -49,7 +50,8 @@ public class CustomWebSocketClient extends WebSocketClient {
                     case LOBBY_DATA:
                     case GAME_STATE:
                         if (!semaphore.tryAcquire()) {
-                            System.out.println("[System] 🚨 Skipping packet due to previous packet not being processed yet");
+                            System.out.println(
+                                    "[System] 🚨 Skipping packet due to previous packet not being processed yet");
                             return;
                         }
                         try {
@@ -80,7 +82,6 @@ public class CustomWebSocketClient extends WebSocketClient {
         });
     }
 
-
     @Override
     public void onClose(int code, String reason, boolean remote) {
         System.out.println("Connection closed: " + reason);
@@ -105,17 +106,20 @@ public class CustomWebSocketClient extends WebSocketClient {
                     yield Optional.empty();
                 }
                 case CONNECTION_REJECTED -> {
-                    String reason = packet.getPayload().get("reason").asText();
-                    System.out.println("[System] 🚨 Connection rejected -> " + reason);
+                    ConnectionRejected connectionRejected = this.mapper.readValue(packet.getPayload().toString(),
+                            ConnectionRejected.class);
+                    System.out.println("[System] 🚨 Connection rejected -> " + connectionRejected.reason());
                     yield Optional.empty();
                 }
 
                 case LOBBY_DATA -> {
                     System.out.println("[System] 🎳 Lobby data received");
+                    LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
                     if (this.agent == null) {
-                        LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
                         this.agent = new MyAgent(lobbyData);
                         System.out.println("[System] 🤖 Created agent");
+                    } else {
+                        this.agent.onSubsequentLobbyData(lobbyData);
                     }
                     yield Optional.empty();
                 }
