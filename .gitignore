@@ -2,3 +2,4 @@ target/*
 target_test-classes/*
 .devcontainer/*
 dependency-reduced-pom.xml
+pom.xml.versionsBackup
