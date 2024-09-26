@@ -40,7 +40,7 @@ public class AgentResponseTest {
                 new AgentResponse.RotationResponse(Optional.of(RotationDirection.RIGHT), Optional.empty());
         String json = mapper.writeValueAsString(rotationPayload);
 
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankRotation\",\"payload\":{\"tankRotation\":1}}");
+        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankRotation\",\"payload\":{\"tankRotation\":1, \"turretRotation\":null}}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);
@@ -52,7 +52,7 @@ public class AgentResponseTest {
         AgentResponse.Shoot shootPayload = new AgentResponse.Shoot();
         String json = mapper.writeValueAsString(shootPayload);
 
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankShoot\", \"payload\": {}}");
+        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankShoot\"}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);

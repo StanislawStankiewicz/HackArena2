@@ -21,6 +21,7 @@ public abstract class AgentResponse {
     public abstract PacketType toPacketType();
 
     @JsonProperty("payload")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, Object> payload = new HashMap<>();
 
 
