@@ -18,6 +18,11 @@ public class MyAgent extends Agent {
     }
 
     @Override
+    public void onSubsequentLobbyData(LobbyData lobbyData) {
+
+    }
+
+    @Override
     public AgentResponse nextMove(GameState gameState) {
         double random = Math.random();
 

@@ -14,6 +14,7 @@ public class App {
         StringBuilder url = new StringBuilder(String.format("ws://%s:%d/?nickname=%s", host, port, nickname));
 
         url.append("&typeOfPacketType=string");
+        url.append("&playerType=hackatonBot");
 
         if (debugQuickJoin) {
             url.append("&quickJoin=true");
@@ -28,7 +29,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        System.out.println("🚀 Starting client...");
+        System.out.println("[System] 🚀 Starting client...");
 
         Args arguments = new Args();
         CommandLine commandLine = new CommandLine(arguments);
@@ -37,11 +38,9 @@ public class App {
         try {
             URI uri = constructUrl(arguments.getHost(), arguments.getPort(), arguments.getCode(), arguments.getNickname(), arguments.isDebugQuickJoin());
 
-            System.out.println("📞 Connecting to the server: " + uri);
+            System.out.println("[System] 📞 Connecting to the server: " + uri);
             WebSocketClient client = new CustomWebSocketClient(uri);
             client.run();
-
-
 
         } catch (Exception e) {
             e.printStackTrace();

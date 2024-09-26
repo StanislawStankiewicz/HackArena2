@@ -6,6 +6,7 @@ import com.github.INIT_SGGW.MonoTanksClient.Game.LobbyData;
 
 public abstract class Agent {
     public Agent(LobbyData lobbyData) {}
+    public abstract void onSubsequentLobbyData(LobbyData lobbyData);
     public abstract AgentResponse nextMove(GameState gameState);
     public abstract void onGameEnd(GameEnd gameEnd);
 }

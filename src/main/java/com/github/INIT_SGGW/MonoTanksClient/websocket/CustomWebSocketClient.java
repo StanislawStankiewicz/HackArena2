@@ -13,6 +13,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 public class CustomWebSocketClient extends WebSocketClient {
@@ -32,7 +33,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshake) {
-        System.out.println("🎉 Successfully connected to the server");
+        System.out.println("[System] 🎉 Successfully connected to the server");
     }
 
 
@@ -48,13 +49,23 @@ public class CustomWebSocketClient extends WebSocketClient {
                     case LOBBY_DATA:
                     case GAME_STATE:
                         if (!semaphore.tryAcquire()) {
-                            System.out.println("Skipping packet due to previous packet not being processed yet");
+                            System.out.println("[System] 🚨 Skipping packet due to previous packet not being processed yet");
                             return;
                         }
                         try {
                             processPacket(packet);
                         } finally {
                             semaphore.release();
+                        }
+                        break;
+
+                    case GAME_END:
+                        try {
+                            semaphore.acquire();
+                            processPacket(packet);
+                            semaphore.release();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
                         break;
 
@@ -82,66 +93,92 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     private void processPacket(Packet packet) {
         try {
-            switch (packet.getType()) {
-                case PING:
-                    Packet pongPacket = new Packet(PacketType.PONG, packet.getPayload());
-                    String messageToSend = new ObjectMapper().writeValueAsString(pongPacket);
-                    this.send(messageToSend);
-                    break;
+            Optional<String> response = switch (packet.getType()) {
+                case PING -> {
+                    Packet pongPacket = new Packet(PacketType.PONG, this.mapper.createObjectNode());
+                    String messageToSend = this.mapper.writeValueAsString(pongPacket);
+                    yield Optional.of(messageToSend);
+                }
 
-                case LOBBY_DATA:
-                    if (this.agent != null) {
-                        break;
+                case CONNECTION_ACCEPTED -> {
+                    System.out.println("[System] 🎉 Connection accepted");
+                    yield Optional.empty();
+                }
+                case CONNECTION_REJECTED -> {
+                    String reason = packet.getPayload().get("reason").asText();
+                    System.out.println("[System] 🚨 Connection rejected -> " + reason);
+                    yield Optional.empty();
+                }
+
+                case LOBBY_DATA -> {
+                    System.out.println("[System] 🎳 Lobby data received");
+                    if (this.agent == null) {
+                        LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
+                        this.agent = new MyAgent(lobbyData);
+                        System.out.println("[System] 🤖 Created agent");
                     }
+                    yield Optional.empty();
+                }
+                case LOBBY_DELETED -> {
+                    System.out.println("[System] 🚪 Lobby deleted");
+                    yield Optional.empty();
+                }
+                case GAME_START -> {
+                    System.out.println("[System] 🎲 Game started");
+                    yield Optional.empty();
+                }
 
-                    LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
-                    this.agent = new MyAgent(lobbyData);
-                    System.out.println("🤖 Created agent");
-                    break;
+                case GAME_STATE -> {
+                    try {
+                        GameState gameState = this.mapper.readValue(packet.getPayload().toString(), GameState.class);
+                        AgentResponse agentResponse = this.agent.nextMove(gameState);
+                        agentResponse.payload.put("gameStateId", gameState.getId());
+                        String messageToSend = this.mapper.writeValueAsString(agentResponse);
+                        yield Optional.of(messageToSend);
+                    } catch (RuntimeException e) {
+                        System.out.println("Error while processing game state: " + e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                }
 
-                case GAME_START:
-                    System.out.println("🎲 Game started");
-                    break;
-
-                case GAME_STATE:
-                    GameState gameState = this.mapper.readValue(packet.getPayload().toString(), GameState.class);
-                    AgentResponse response = this.agent.nextMove(gameState);
-                    this.send(this.mapper.writeValueAsString(response));
-                    break;
-
-                case GAME_END:
-                    this.semaphore.acquire();
+                case GAME_END -> {
                     System.out.println("🏁 Game ended");
                     GameEnd gameEnd = this.mapper.readValue(packet.getPayload().toString(), GameEnd.class);
                     this.agent.onGameEnd(gameEnd);
-                    this.semaphore.release();
-                    break;
+                    yield Optional.empty();
+                }
 
-                case ALREADY_MADE_MOVEMENT:
-                    System.out.println("Warning: Already made action during this tick");
-                    break;
+                case PLAYER_ALREADY_MADE_ACTION_WARNING -> {
+                    System.out.println("[System] 🚨 Player already made action warning");
+                    yield Optional.empty();
+                }
+                case MISSING_GAME_STATE_ID_WARNING -> {
+                    System.out.println("[System] 🚨 Missing game state ID warning");
+                    yield Optional.empty();
+                }
+                case SLOW_RESPONSE_WARNING -> {
+                    System.out.println("[System] 🚨 Slow response warning");
+                    yield Optional.empty();
+                }
+                case INVALID_PACKET_TYPE_ERROR -> {
+                    System.out.println("[System] 🚨 Invalid packet type error");
+                    yield Optional.empty();
+                }
+                case INVALID_PACKET_USAGE_ERROR -> {
+                    System.out.println("[System] 🚨 Invalid packet usage error");
+                    yield Optional.empty();
+                }
 
-                case CONNECTION_ACCEPTED:
-                    System.out.println("Connection accepted");
-                    break;
+                // Should never happen
+                case PONG -> Optional.empty();
+                case TANK_MOVEMENT -> Optional.empty();
+                case TANK_ROTATION -> Optional.empty();
+                case TANK_SHOOT -> Optional.empty();
+            };
 
-                case CONNECTION_REJECTED:
-                    System.out.println("Connection rejected");
-                    packet.getPayload().get("reason").asText();
-                    System.out.println("Reason: " + packet.getPayload().get("reason").asText());
-                    break;
-
-                case PONG:
-                    System.out.println("Received pong packet. This should not happen");
-                    break;
-
-                default:
-                    System.out.println("Received packet with unknown type: " + packet.getType());
-                    break;
-            }
+            response.ifPresent(this::send);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+            System.out.println("Error while processing packet: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
