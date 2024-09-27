@@ -1,9 +1,13 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.Agent.MyAgent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
@@ -29,19 +33,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
-
         this.mapper = new ObjectMapper();
-        this.mapper.registerModule(new Jdk8Module());
-
-        // Warm-up the mapper
-        try {
-            this.mapper.readValue(GameStatePayload.payload, GameState.class);
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
         this.executorService = Executors.newCachedThreadPool();
         this.semaphore = new Semaphore(1);
     }
