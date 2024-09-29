@@ -4,8 +4,10 @@ import com.github.INIT_SGGW.MonoTanksClient.utils.Args;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.CustomWebSocketClient;
 import org.java_websocket.client.WebSocketClient;
 import picocli.CommandLine;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 public class App {
 
@@ -36,24 +38,33 @@ public class App {
 
         System.out.println("[System] 🚀 Starting client...");
 
+        String serverAddress;
         try {
-            URI uri = constructUrl(
-                    arguments.getHost(),
+            serverAddress = InetAddress.getByName(arguments.getHost()).getHostAddress();
+        } catch (UnknownHostException e) {
+            System.err.println("[System] 🚨 Invalid server address: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+        URI uri;
+        try {
+            uri = constructUrl(
+                    serverAddress,
                     arguments.getPort(),
                     arguments.getCode(),
                     arguments.getNickname());
-
-            System.out.println("[System] 📞 Connecting to the server: " + uri);
-            try {
-                WebSocketClient client = new CustomWebSocketClient(uri);
-                client.run();
-            } catch (Exception e) {
-                System.err.println("[System] 🚨 An error occurred: " + e.getMessage());
-            }
-
         } catch (URISyntaxException e) {
             System.err.println("[System] 🚨 Invalid URI: " + e.getMessage());
+            return;
+        }
+
+        try {
+            System.out.println("[System] 📞 Connecting to the server: " + uri);
+            WebSocketClient client = new CustomWebSocketClient(uri);
+            client.run();
         } catch (Exception e) {
+            System.err.println("[System] 🚨 An error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
