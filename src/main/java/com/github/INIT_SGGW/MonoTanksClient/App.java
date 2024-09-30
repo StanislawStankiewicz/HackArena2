@@ -16,7 +16,7 @@ public class App {
         StringBuilder url = new StringBuilder(String.format("ws://%s:%d/?nickname=%s", host, port, nickname));
 
         url.append("&typeOfPacketType=string");
-        url.append("&playerType=hackatonBot");
+        url.append("&playerType=hackathonBot");
 
         if (code != null && !code.isEmpty()) {
             url.append("&joinCode=");
