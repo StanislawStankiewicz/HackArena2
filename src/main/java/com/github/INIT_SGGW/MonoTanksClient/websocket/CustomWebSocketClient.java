@@ -1,14 +1,8 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.BufferRecycler;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.Agent.MyAgent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
@@ -167,6 +161,10 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
                 case SLOW_RESPONSE_WARNING -> {
                     System.out.println("[System] 🚨 Slow response warning");
+                    yield Optional.empty();
+                }
+                case ACTION_IGNORED_DUE_TO_DEAD_WARNING -> {
+                    System.out.println("[System] 🚨 Action ignored due to dead warning");
                     yield Optional.empty();
                 }
                 case INVALID_PACKET_TYPE_ERROR -> {
