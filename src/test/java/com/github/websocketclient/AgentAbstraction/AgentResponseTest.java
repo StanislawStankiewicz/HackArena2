@@ -36,16 +36,16 @@ public class AgentResponseTest {
 
     @Test
     public void testRotationSerialization() throws JsonProcessingException {
-        AgentResponse.RotationResponse rotationPayload =
-                new AgentResponse.RotationResponse(Optional.of(RotationDirection.RIGHT), Optional.empty());
+        AgentResponse.RotationResponse rotationPayload = new AgentResponse.RotationResponse(
+                Optional.of(RotationDirection.RIGHT), Optional.empty());
         String json = mapper.writeValueAsString(rotationPayload);
 
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankRotation\",\"payload\":{\"tankRotation\":1, \"turretRotation\":null}}");
+        JsonNode expectedJson = mapper
+                .readTree("{\"type\":\"tankRotation\",\"payload\":{\"tankRotation\":1, \"turretRotation\":null}}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);
     }
-
 
     @Test
     public void testShootSerialization() throws JsonProcessingException {
@@ -53,6 +53,17 @@ public class AgentResponseTest {
         String json = mapper.writeValueAsString(shootPayload);
 
         JsonNode expectedJson = mapper.readTree("{\"type\":\"tankShoot\"}");
+        JsonNode actualJson = mapper.readTree(json);
+
+        assertEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testResponsePassSerialization() throws JsonProcessingException {
+        AgentResponse.ResponsePass passPayload = new AgentResponse.ResponsePass();
+        String json = mapper.writeValueAsString(passPayload);
+
+        JsonNode expectedJson = mapper.readTree("{\"type\":\"responsePass\"}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);

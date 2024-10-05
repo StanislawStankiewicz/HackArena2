@@ -75,7 +75,7 @@ public abstract class AgentResponse {
         /**
          * Constructor for RotationResponse.
          * 
-         * @param tankRotationDirection the direction of the tank rotation.
+         * @param tankRotationDirection   the direction of the tank rotation.
          * @param turretRotationDirection the direction of the turret rotation.
          */
         public RotationResponse(Optional<RotationDirection> tankRotationDirection,
@@ -113,6 +113,23 @@ public abstract class AgentResponse {
     }
 
     /**
+     * Class representing a pass response.
+     */
+    @JsonTypeName("responsePass")
+    @ToString
+    public static class ResponsePass extends AgentResponse {
+        /**
+         * Converts the pass response to a PacketType.
+         * 
+         * @return the PacketType of the pass response.
+         */
+        @Override
+        public PacketType toPacketType() {
+            return PacketType.RESPONSE_PASS;
+        }
+    }
+
+    /**
      * Creates a movement response.
      * 
      * @param direction the direction of the movement.
@@ -125,7 +142,7 @@ public abstract class AgentResponse {
     /**
      * Creates a rotation response.
      * 
-     * @param tankRotationDirection the direction of the tank rotation.
+     * @param tankRotationDirection   the direction of the tank rotation.
      * @param turretRotationDirection the direction of the turret rotation.
      * @return a new RotationResponse instance.
      */
@@ -141,5 +158,14 @@ public abstract class AgentResponse {
      */
     public static AgentResponse createShootResponse() {
         return new Shoot();
+    }
+
+    /**
+     * Creates a pass response.
+     * 
+     * @return a new ResponsePass instance.
+     */
+    public static AgentResponse createPassResponse() {
+        return new ResponsePass();
     }
 }

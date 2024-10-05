@@ -28,13 +28,13 @@ public class MyAgent extends Agent {
     public AgentResponse nextMove(GameState gameState) {
         double random = Math.random();
 
-        if (random < 0.33) {
+        if (random < 0.25) {
             if (Math.random() < 0.5) {
                 return AgentResponse.createMoveResponse(MoveDirection.FORWARD);
             } else {
                 return AgentResponse.createMoveResponse(MoveDirection.BACKWARD);
             }
-        } else if (random < 0.66) {
+        } else if (random < 0.5) {
             double tankRandom = Math.random();
             RotationDirection tankRotation = tankRandom < 0.33 ? RotationDirection.LEFT
                     : tankRandom < 0.66 ? RotationDirection.RIGHT : null;
@@ -45,10 +45,11 @@ public class MyAgent extends Agent {
 
             return AgentResponse.createRotationResponse(Optional.ofNullable(tankRotation),
                     Optional.ofNullable(turretRotation));
-        } else {
+        } else if (random < 0.75) {
             return AgentResponse.createShootResponse();
+        } else {
+            return AgentResponse.createPassResponse();
         }
-
     }
 
     @Override

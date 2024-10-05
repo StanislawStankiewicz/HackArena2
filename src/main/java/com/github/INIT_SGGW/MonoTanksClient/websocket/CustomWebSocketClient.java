@@ -181,6 +181,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                 case TANK_MOVEMENT -> Optional.empty();
                 case TANK_ROTATION -> Optional.empty();
                 case TANK_SHOOT -> Optional.empty();
+                case RESPONSE_PASS -> Optional.empty();
             };
 
             response.ifPresent(this::send);
