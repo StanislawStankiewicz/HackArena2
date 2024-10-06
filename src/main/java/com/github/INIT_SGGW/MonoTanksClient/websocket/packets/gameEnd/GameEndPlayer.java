@@ -26,5 +26,10 @@ public record GameEndPlayer(
         /**
          * The score of the player.
          */
-        long score) {
+        long score,
+
+        /**
+         * The number of kills achieved by the player.
+         */
+        long kills) {
 }

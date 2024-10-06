@@ -148,6 +148,9 @@ public abstract class AgentResponse {
      */
     public static AgentResponse createRotationResponse(Optional<RotationDirection> tankRotationDirection,
             Optional<RotationDirection> turretRotationDirection) {
+        if (tankRotationDirection.isEmpty() && turretRotationDirection.isEmpty()) {
+            return new ResponsePass();
+        }
         return new RotationResponse(tankRotationDirection, turretRotationDirection);
     }
 
