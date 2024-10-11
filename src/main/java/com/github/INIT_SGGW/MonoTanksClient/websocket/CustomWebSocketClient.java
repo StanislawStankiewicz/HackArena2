@@ -27,6 +27,13 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
+
+        // Increase buffer size to 16KB
+        this.setReceiveBufferSize(16 * 1024);
+
+        // Disable connection lost timeout
+        this.setConnectionLostTimeout(0);
+
         this.mapper = new ObjectMapper();
         this.executorService = Executors.newCachedThreadPool();
         this.semaphore = new Semaphore(1);
