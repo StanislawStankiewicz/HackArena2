@@ -1,59 +1,67 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.LaserDirection;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Turret;
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.*;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.*;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.*;
+
 import java.io.IOException;
-import java.util.Optional;
-import java.util.List;
+import java.util.*;
 
 public class MapDeserializer extends JsonDeserializer<Tile[][]> {
+    private ObjectMapper mapper;
+
     @Override
     public Tile[][] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        ObjectMapper mapper = (ObjectMapper) p.getCodec();
+        mapper = (ObjectMapper) p.getCodec();
         JsonNode rootNode = mapper.readTree(p);
-        JsonNode visibilityNode = rootNode.get("visibility");
 
-        if (visibilityNode == null || !visibilityNode.isArray()) {
-            return new Tile[0][0]; // Return an empty map if visibility is not present or not an array
-        }
-
-        JsonNode rowsNode = visibilityNode;
-        JsonNode colsNode = visibilityNode.get(0);
-        int rows = rowsNode.size();
-        int cols = colsNode.asText().length();
+        Boolean[][] visibility = deserializeVisibility(rootNode);
+        Integer[][] zones = deserializeZones(rootNode);
+        int rows = visibility.length;
+        int cols = visibility[0].length;
 
         Tile[][] map = new Tile[rows][cols];
-
-        // Deserialize visibility
-        Boolean[][] visibility = new Boolean[rows][cols];
+        JsonNode tilesNode = rootNode.get("tiles");
 
         for (int i = 0; i < rows; i++) {
-            JsonNode rowNode = visibilityNode.get(i);
             for (int j = 0; j < cols; j++) {
-                visibility[i][j] = rowNode.asText().charAt(j) == '1';
+                map[i][j] = deserializeTile(tilesNode.get(j).get(i), visibility[i][j], zones[i][j]);
             }
         }
 
-        // Deserialize zones
-        Integer[][] zones = new Integer[rows][cols];
-        JsonNode zonesNode = rootNode.get("zones");
+        return map;
+    }
 
-        if (zonesNode == null || !zonesNode.isArray()) {
-            return new Tile[0][0]; // Return an empty map if zones is not present or not an array
+    private Boolean[][] deserializeVisibility(JsonNode rootNode) {
+        JsonNode visibilityNode = rootNode.get("visibility");
+        if (visibilityNode == null || !visibilityNode.isArray()) {
+            return new Boolean[0][0];
         }
+
+        int rows = visibilityNode.size();
+        int cols = visibilityNode.get(0).asText().length();
+        Boolean[][] visibility = new Boolean[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            String rowString = visibilityNode.get(i).asText();
+            for (int j = 0; j < cols; j++) {
+                visibility[i][j] = rowString.charAt(j) == '1';
+            }
+        }
+
+        return visibility;
+    }
+
+    private Integer[][] deserializeZones(JsonNode rootNode) {
+        JsonNode zonesNode = rootNode.get("zones");
+        if (zonesNode == null || !zonesNode.isArray()) {
+            return new Integer[0][0];
+        }
+
+        int rows = rootNode.get("visibility").size();
+        int cols = rootNode.get("visibility").get(0).asText().length();
+        Integer[][] zones = new Integer[rows][cols];
 
         for (JsonNode zoneNode : zonesNode) {
             int x = zoneNode.get("x").asInt();
@@ -69,102 +77,81 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
             }
         }
 
-        // Deserialize tiles
-        JsonNode tilesNode = rootNode.get("tiles");
+        return zones;
+    }
 
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                JsonNode rowNode = tilesNode.get(j);
-                JsonNode tileNode = rowNode.get(i);
+    private Tile deserializeTile(JsonNode tileNode, boolean isVisible, Integer zoneIndex) {
+        Optional<Integer> zone = Optional.ofNullable(zoneIndex);
+        List<Tile.TilePayload> payload = new ArrayList<>();
 
-                boolean isVisible = visibility[i][j];
-                Optional<Integer> zoneIndex = zones[i][j] == null ? Optional.empty() : Optional.of(zones[i][j]);
-
-                if (!tileNode.isArray()) {
-                    System.err.println("Tile at [" + i + "][" + j + "] is not an array");
-                    map[i][j] = new Tile(isVisible, zoneIndex, new ArrayList<>());
-                    continue;
-                }
-
-                // Deserialize the tile payload
-                List<Tile.TilePayload> payload = new ArrayList<>();
-                if (tileNode.size() > 0) {
-                    JsonNode payloadNode = tileNode.get(0);
-                    String type = payloadNode.get("type").asText();
-                    switch (type) {
-                        case "wall":
-                            payload.add(new Tile.Wall());
-                            break;
-
-                        case "tank":
-                            Tank tank = new Tank();
-                            tank.setOwnerId(payloadNode.get("payload").get("ownerId").asText());
-
-                            if (payloadNode.get("payload").get("health") != null) {
-                                Long health = payloadNode.get("payload").get("health").asLong();
-                                tank.setHealth(Optional.of(health));
-                            } else {
-                                tank.setHealth(Optional.empty());
-                            }
-
-                            int directionInt = payloadNode.get("payload").get("direction").asInt();
-                            Direction direction = Direction.fromValue(directionInt);
-                            tank.setDirection(direction);
-
-                            JsonNode turretNode = payloadNode.get("payload").get("turret");
-                            int turretDirectionInt = turretNode.get("direction").asInt();
-                            Direction turretDirection = Direction.fromValue(turretDirectionInt);
-
-                            Optional<Long> bulletCount = Optional.empty();
-                            if (turretNode.get("bulletCount") != null) {
-                                bulletCount = Optional.of(turretNode.get("bulletCount").asLong());
-                            }
-
-                            Optional<Double> ticksToRegenBullet = Optional.empty();
-                            if (turretNode.get("ticksToRegenBullet") != null) {
-                                ticksToRegenBullet = Optional.of(turretNode.get("ticksToRegenBullet").asDouble());
-                            }
-
-                            Turret turret = new Turret(turretDirection, bulletCount, ticksToRegenBullet);
-                            tank.setTurret(turret);
-                            payload.add(tank);
-                            break;
-
-                        case "bullet":
-                            Bullet bullet = new Bullet();
-                            int bulletDirectionInt = payloadNode.get("payload").get("direction").asInt();
-                            Direction bulletDirection = Direction.fromValue(bulletDirectionInt);
-                            bullet.setDirection(bulletDirection);
-                            payload.add(bullet);
-                            break;
-
-                        case "item":
-                            ItemType itemType = ItemType.fromValue(payloadNode.get("payload").get("type").asInt());
-                            Item item = new Item(itemType);
-                            payload.add(item);
-                            break;
-
-                        case "laser":
-                            Laser laser = new Laser();
-                            laser.setId(payloadNode.get("payload").get("id").asLong());
-                            int orientationInt = payloadNode.get("payload").get("orientation").asInt();
-                            LaserDirection orientation = LaserDirection.fromValue(orientationInt);
-                            laser.setOrientation(orientation);
-                            payload.add(laser);
-                            break;
-
-                        case "mine":
-                            Mine mine = new Mine();
-                            mine.setId(payloadNode.get("payload").get("id").asLong());
-                            payload.add(mine);
-                            break;
-                    }
-                }
-
-                map[i][j] = new Tile(isVisible, zoneIndex, payload);
-            }
+        if (tileNode.isArray() && tileNode.size() > 0) {
+            JsonNode payloadNode = tileNode.get(0);
+            String type = payloadNode.get("type").asText();
+            payload.add(deserializePayload(type, payloadNode));
         }
 
-        return map;
+        return new Tile(isVisible, zone, payload);
+    }
+
+    private Tile.TilePayload deserializePayload(String type, JsonNode payloadNode) {
+        switch (type) {
+            case "wall":
+                return new Tile.Wall();
+            case "tank":
+                return deserializeTank(payloadNode);
+            case "bullet":
+                return deserializeBullet(payloadNode);
+            case "item":
+                return deserializeItem(payloadNode);
+            case "laser":
+                return deserializeLaser(payloadNode);
+            case "mine":
+                return deserializeMine(payloadNode);
+            default:
+                throw new IllegalArgumentException("Unknown tile type: " + type);
+        }
+    }
+
+    private Tank deserializeTank(JsonNode payloadNode) {
+        Tank tank = new Tank();
+        JsonNode tankPayload = payloadNode.get("payload");
+        tank.setOwnerId(tankPayload.get("ownerId").asText());
+        tank.setHealth(Optional.ofNullable(tankPayload.get("health")).map(JsonNode::asLong));
+        tank.setDirection(mapper.convertValue(tankPayload.get("direction"), Direction.class));
+        tank.setTurret(deserializeTurret(tankPayload.get("turret")));
+        return tank;
+    }
+
+    private Turret deserializeTurret(JsonNode turretNode) {
+        Direction direction = mapper.convertValue(turretNode.get("direction"), Direction.class);
+        Optional<Long> bulletCount = Optional.ofNullable(turretNode.get("bulletCount")).map(JsonNode::asLong);
+        Optional<Double> ticksToRegenBullet = Optional.ofNullable(turretNode.get("ticksToRegenBullet"))
+                .map(JsonNode::asDouble);
+        return new Turret(direction, bulletCount, ticksToRegenBullet);
+    }
+
+    private Bullet deserializeBullet(JsonNode payloadNode) {
+        Bullet bullet = new Bullet();
+        bullet.setDirection(mapper.convertValue(payloadNode.get("payload").get("direction"), Direction.class));
+        return bullet;
+    }
+
+    private Item deserializeItem(JsonNode payloadNode) {
+        ItemType itemType = mapper.convertValue(payloadNode.get("payload").get("type"), ItemType.class);
+        return new Item(itemType);
+    }
+
+    private Laser deserializeLaser(JsonNode payloadNode) {
+        Laser laser = new Laser();
+        JsonNode laserPayload = payloadNode.get("payload");
+        laser.setId(laserPayload.get("id").asLong());
+        laser.setOrientation(mapper.convertValue(laserPayload.get("orientation"), LaserDirection.class));
+        return laser;
+    }
+
+    private Mine deserializeMine(JsonNode payloadNode) {
+        Mine mine = new Mine();
+        mine.setId(payloadNode.get("payload").get("id").asLong());
+        return mine;
     }
 }

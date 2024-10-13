@@ -126,7 +126,7 @@ public abstract class AgentResponse {
          * @param abilityType the type of the ability.
          */
         public AbilityUse(AbilityType abilityType) {
-            this.payload.put("abilityType", abilityType.getValue());
+            this.payload.put("abilityType", abilityType);
         }
 
         /**

@@ -82,7 +82,13 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                System.err.println("Error processing message: " + message);
+                System.err.println("Exception details:");
+                e.printStackTrace();
+            } catch (Exception e) {
+                System.err.println("Unexpected error processing message: " + message);
+                System.err.println("Exception details:");
+                e.printStackTrace();
             }
         });
     }
@@ -140,15 +146,18 @@ public class CustomWebSocketClient extends WebSocketClient {
                 case GAME_STATE -> {
                     try {
                         JsonNode payload = packet.getPayload();
+
                         GameState gameState = this.mapper.treeToValue(payload, GameState.class);
                         AgentResponse agentResponse = this.agent.nextMove(gameState);
+
                         agentResponse.payload.put("gameStateId", gameState.id());
                         String messageToSend = this.mapper.writeValueAsString(agentResponse);
-                        yield Optional.of(messageToSend);
 
-                    } catch (RuntimeException e) {
-                        System.out.println("Error while processing game state: " + e.getMessage());
-                        throw new RuntimeException(e);
+                        yield Optional.of(messageToSend);
+                    } catch (Exception e) {
+                        System.err.println("Error in GAME_STATE case:");
+                        e.printStackTrace();
+                        yield Optional.empty();
                     }
                 }
 

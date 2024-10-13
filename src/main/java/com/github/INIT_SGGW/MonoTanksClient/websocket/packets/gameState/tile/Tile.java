@@ -1,17 +1,17 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.github.INIT_SGGW.MonoTanksClient.utils.CamelCaseEnumDeserializer;
+import com.github.INIT_SGGW.MonoTanksClient.utils.CamelCaseEnumSerializer;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.ItemType;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
@@ -124,7 +124,17 @@ public class Tile {
         /**
          * The type of the bullet.
          */
-        private String type;
+        private BulletType type;
+    }
+
+    /**
+     * Enum representing the possible types of bullets.
+     */
+    @JsonSerialize(using = CamelCaseEnumSerializer.class)
+    @JsonDeserialize(using = CamelCaseEnumDeserializer.class)
+    public enum BulletType {
+        BASIC,
+        DOUBLE
     }
 
     /**
@@ -180,50 +190,18 @@ public class Tile {
     /**
      * Enum representing the possible orientations of a laser.
      */
-    @Getter
     @RequiredArgsConstructor
+    @JsonSerialize(using = CamelCaseEnumSerializer.class)
+    @JsonDeserialize(using = CamelCaseEnumDeserializer.class)
     public enum LaserDirection {
         /**
          * Represents a horizontal laser orientation.
          */
-        HORIZONTAL(0),
+        HORIZONTAL,
 
         /**
          * Represents a vertical laser orientation.
          */
-        VERTICAL(1);
-
-        /**
-         * The integer value associated with the laser direction.
-         */
-        private final int value;
-
-        /**
-         * Creates a LaserDirection from an integer value.
-         *
-         * @param value the integer value representing the laser direction
-         * @return the corresponding LaserDirection
-         * @throws IllegalArgumentException if the value does not correspond to any
-         *                                  LaserDirection
-         */
-        @JsonCreator
-        public static LaserDirection fromValue(int value) {
-            for (LaserDirection direction : LaserDirection.values()) {
-                if (direction.value == value) {
-                    return direction;
-                }
-            }
-            throw new IllegalArgumentException("Unknown LaserDirection value: " + value);
-        }
-
-        /**
-         * Converts the LaserDirection to its integer value.
-         *
-         * @return the integer value representing the laser direction
-         */
-        @JsonValue
-        public int toValue() {
-            return value;
-        }
+        VERTICAL;
     }
 }

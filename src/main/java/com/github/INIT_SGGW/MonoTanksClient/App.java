@@ -15,7 +15,7 @@ public class App {
             throws URISyntaxException {
         StringBuilder url = new StringBuilder(String.format("ws://%s:%d/?nickname=%s", host, port, nickname));
 
-        url.append("&typeOfPacketType=string");
+        url.append("&enumSerializationFormat=string");
         url.append("&playerType=hackathonBot");
 
         if (code != null && !code.isEmpty()) {

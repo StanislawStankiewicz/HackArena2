@@ -28,11 +28,9 @@ public class AgentResponseTest {
         AgentResponse.Move movePayload = new AgentResponse.Move(MoveDirection.FORWARD);
         String json = mapper.writeValueAsString(movePayload);
 
-        // Parse the JSON strings into JsonNode objects
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankMovement\",\"payload\":{\"direction\":0}}");
+        JsonNode expectedJson = mapper.readTree("{\"type\":\"movement\",\"payload\":{\"direction\":\"forward\"}}");
         JsonNode actualJson = mapper.readTree(json);
 
-        // Compare the JsonNode objects
         assertEquals(expectedJson, actualJson);
     }
 
@@ -43,18 +41,19 @@ public class AgentResponseTest {
         String json = mapper.writeValueAsString(rotationPayload);
 
         JsonNode expectedJson = mapper
-                .readTree("{\"type\":\"tankRotation\",\"payload\":{\"tankRotation\":1, \"turretRotation\":null}}");
+                .readTree("{\"type\":\"rotation\",\"payload\":{\"tankRotation\":\"right\",\"turretRotation\":null}}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);
     }
 
     @Test
-    public void testShootSerialization() throws JsonProcessingException {
-        AgentResponse.AbilityUse shootPayload = new AgentResponse.AbilityUse(AbilityType.FIRE_BULLET);
-        String json = mapper.writeValueAsString(shootPayload);
+    public void testAbilityUseSerialization() throws JsonProcessingException {
+        AgentResponse.AbilityUse abilityUsePayload = new AgentResponse.AbilityUse(AbilityType.FIRE_BULLET);
+        String json = mapper.writeValueAsString(abilityUsePayload);
 
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"tankShoot\"}");
+        JsonNode expectedJson = mapper
+                .readTree("{\"type\":\"abilityUse\",\"payload\":{\"abilityType\":\"fireBullet\"}}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);
@@ -65,10 +64,9 @@ public class AgentResponseTest {
         AgentResponse.ResponsePass passPayload = new AgentResponse.ResponsePass();
         String json = mapper.writeValueAsString(passPayload);
 
-        JsonNode expectedJson = mapper.readTree("{\"type\":\"responsePass\"}");
+        JsonNode expectedJson = mapper.readTree("{\"type\":\"pass\"}");
         JsonNode actualJson = mapper.readTree(json);
 
         assertEquals(expectedJson, actualJson);
     }
-
 }
