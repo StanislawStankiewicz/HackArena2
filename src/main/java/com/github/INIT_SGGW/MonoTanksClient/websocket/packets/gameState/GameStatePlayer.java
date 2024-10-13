@@ -22,7 +22,8 @@ public record GameStatePlayer(
         String nickname,
 
         /**
-         * The color associated with the player, represented as a long value. In format 0xAABBGGRR.
+         * The color associated with the player, represented as a long value. In format
+         * 0xAABBGGRR.
          */
         long color,
 
@@ -32,13 +33,20 @@ public record GameStatePlayer(
         Long ping,
 
         /**
-         * The score of the player, represented as an Optional Long. 
+         * The score of the player, represented as an Optional Long.
          * You only see your own score.
          */
         @JsonDeserialize(using = OptionalDeserializer.class) Optional<Long> score,
 
         /**
-         * The number of ticks remaining for the player to regenerate, represented as an Optional Long.
+         * The number of ticks remaining for the player to regenerate, represented as an
+         * Optional Long.
          */
-        @JsonDeserialize(using = OptionalDeserializer.class) Optional<Long> ticksToRegen) {
+        @JsonDeserialize(using = OptionalDeserializer.class) Optional<Long> ticksToRegen,
+
+        /**
+         * Whether the player is using radar.
+         * This is only available for our own player.
+         */
+        @JsonDeserialize(using = OptionalDeserializer.class) Optional<Boolean> isUsingRadar) {
 }

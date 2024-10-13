@@ -10,6 +10,7 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.ConnectionRejected
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.CustomWarning;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -182,13 +183,19 @@ public class CustomWebSocketClient extends WebSocketClient {
                     System.out.println("[System] 🚨 Invalid packet usage error");
                     yield Optional.empty();
                 }
+                case CUSTOM_WARNING -> {
+                    CustomWarning customWarning = this.mapper.readValue(packet.getPayload().toString(),
+                            CustomWarning.class);
+                    System.out.println("[System] ⚠️ Custom Warning: " + customWarning.message());
+                    yield Optional.empty();
+                }
 
                 // Should never happen
                 case PONG -> Optional.empty();
-                case TANK_MOVEMENT -> Optional.empty();
-                case TANK_ROTATION -> Optional.empty();
-                case TANK_SHOOT -> Optional.empty();
-                case RESPONSE_PASS -> Optional.empty();
+                case MOVEMENT -> Optional.empty();
+                case ROTATION -> Optional.empty();
+                case ABILITY_USE -> Optional.empty();
+                case PASS -> Optional.empty();
             };
 
             response.ifPresent(this::send);

@@ -8,11 +8,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.LaserDirection;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Turret;
-
+import java.util.ArrayList;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.List;
 
 public class MapDeserializer extends JsonDeserializer<Tile[][]> {
     @Override
@@ -77,18 +82,18 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
 
                 if (!tileNode.isArray()) {
                     System.err.println("Tile at [" + i + "][" + j + "] is not an array");
-                    map[i][j] = new Tile(isVisible, zoneIndex, new Tile.Empty());
+                    map[i][j] = new Tile(isVisible, zoneIndex, new ArrayList<>());
                     continue;
                 }
 
                 // Deserialize the tile payload
-                Tile.TilePayload payload = new Tile.Empty();
+                List<Tile.TilePayload> payload = new ArrayList<>();
                 if (tileNode.size() > 0) {
                     JsonNode payloadNode = tileNode.get(0);
                     String type = payloadNode.get("type").asText();
                     switch (type) {
                         case "wall":
-                            payload = new Tile.Wall();
+                            payload.add(new Tile.Wall());
                             break;
 
                         case "tank":
@@ -122,7 +127,7 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
 
                             Turret turret = new Turret(turretDirection, bulletCount, ticksToRegenBullet);
                             tank.setTurret(turret);
-                            payload = tank;
+                            payload.add(tank);
                             break;
 
                         case "bullet":
@@ -130,7 +135,28 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
                             int bulletDirectionInt = payloadNode.get("payload").get("direction").asInt();
                             Direction bulletDirection = Direction.fromValue(bulletDirectionInt);
                             bullet.setDirection(bulletDirection);
-                            payload = bullet;
+                            payload.add(bullet);
+                            break;
+
+                        case "item":
+                            ItemType itemType = ItemType.fromValue(payloadNode.get("payload").get("type").asInt());
+                            Item item = new Item(itemType);
+                            payload.add(item);
+                            break;
+
+                        case "laser":
+                            Laser laser = new Laser();
+                            laser.setId(payloadNode.get("payload").get("id").asLong());
+                            int orientationInt = payloadNode.get("payload").get("orientation").asInt();
+                            LaserDirection orientation = LaserDirection.fromValue(orientationInt);
+                            laser.setOrientation(orientation);
+                            payload.add(laser);
+                            break;
+
+                        case "mine":
+                            Mine mine = new Mine();
+                            mine.setId(payloadNode.get("payload").get("id").asLong());
+                            payload.add(mine);
                             break;
                     }
                 }

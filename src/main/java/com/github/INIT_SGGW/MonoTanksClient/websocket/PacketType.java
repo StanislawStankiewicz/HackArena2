@@ -19,10 +19,10 @@ public enum PacketType {
     GAME_START,
 
     GAME_STATE,
-    TANK_MOVEMENT,
-    TANK_ROTATION,
-    TANK_SHOOT,
-    RESPONSE_PASS,
+    MOVEMENT,
+    ROTATION,
+    ABILITY_USE,
+    PASS,
 
     GAME_END,
 
@@ -31,6 +31,7 @@ public enum PacketType {
     MISSING_GAME_STATE_ID_WARNING,
     SLOW_RESPONSE_WARNING,
     ACTION_IGNORED_DUE_TO_DEAD_WARNING,
+    CUSTOM_WARNING,
 
     // Errors
     INVALID_PACKET_TYPE_ERROR,

@@ -10,6 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import java.util.Optional;
+
+import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AbilityType;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
 
 public class AgentResponseTest {
@@ -49,7 +51,7 @@ public class AgentResponseTest {
 
     @Test
     public void testShootSerialization() throws JsonProcessingException {
-        AgentResponse.Shoot shootPayload = new AgentResponse.Shoot();
+        AgentResponse.AbilityUse shootPayload = new AgentResponse.AbilityUse(AbilityType.FIRE_BULLET);
         String json = mapper.writeValueAsString(shootPayload);
 
         JsonNode expectedJson = mapper.readTree("{\"type\":\"tankShoot\"}");

@@ -38,7 +38,7 @@ public abstract class AgentResponse {
     /**
      * Class representing a movement response.
      */
-    @JsonTypeName("tankMovement")
+    @JsonTypeName("movement")
     @Getter
     @Setter
     @ToString
@@ -59,14 +59,14 @@ public abstract class AgentResponse {
          */
         @Override
         public PacketType toPacketType() {
-            return PacketType.TANK_MOVEMENT;
+            return PacketType.MOVEMENT;
         }
     }
 
     /**
      * Class representing a rotation response.
      */
-    @JsonTypeName("tankRotation")
+    @JsonTypeName("rotation")
     @Getter
     @Setter
     @ToString
@@ -91,31 +91,14 @@ public abstract class AgentResponse {
          */
         @Override
         public PacketType toPacketType() {
-            return PacketType.TANK_ROTATION;
-        }
-    }
-
-    /**
-     * Class representing a shoot response.
-     */
-    @JsonTypeName("tankShoot")
-    @ToString
-    public static class Shoot extends AgentResponse {
-        /**
-         * Converts the shoot response to a PacketType.
-         * 
-         * @return the PacketType of the shoot response.
-         */
-        @Override
-        public PacketType toPacketType() {
-            return PacketType.TANK_SHOOT;
+            return PacketType.ROTATION;
         }
     }
 
     /**
      * Class representing a pass response.
      */
-    @JsonTypeName("responsePass")
+    @JsonTypeName("pass")
     @ToString
     public static class ResponsePass extends AgentResponse {
         /**
@@ -125,7 +108,35 @@ public abstract class AgentResponse {
          */
         @Override
         public PacketType toPacketType() {
-            return PacketType.RESPONSE_PASS;
+            return PacketType.PASS;
+        }
+    }
+
+    /**
+     * Class representing an ability use response.
+     */
+    @JsonTypeName("abilityUse")
+    @Getter
+    @Setter
+    @ToString
+    public static class AbilityUse extends AgentResponse {
+        /**
+         * Constructor for AbilityUse.
+         * 
+         * @param abilityType the type of the ability.
+         */
+        public AbilityUse(AbilityType abilityType) {
+            this.payload.put("abilityType", abilityType.getValue());
+        }
+
+        /**
+         * Converts the ability use response to a PacketType.
+         * 
+         * @return the PacketType of the ability use response.
+         */
+        @Override
+        public PacketType toPacketType() {
+            return PacketType.ABILITY_USE;
         }
     }
 
@@ -155,20 +166,21 @@ public abstract class AgentResponse {
     }
 
     /**
-     * Creates a shoot response.
-     * 
-     * @return a new Shoot instance.
-     */
-    public static AgentResponse createShootResponse() {
-        return new Shoot();
-    }
-
-    /**
      * Creates a pass response.
      * 
      * @return a new ResponsePass instance.
      */
     public static AgentResponse createPassResponse() {
         return new ResponsePass();
+    }
+
+    /**
+     * Creates an ability use response.
+     * 
+     * @param abilityType the type of the ability.
+     * @return a new AbilityUse instance.
+     */
+    public static AgentResponse createAbilityUseResponse(AbilityType abilityType) {
+        return new AbilityUse(abilityType);
     }
 }
