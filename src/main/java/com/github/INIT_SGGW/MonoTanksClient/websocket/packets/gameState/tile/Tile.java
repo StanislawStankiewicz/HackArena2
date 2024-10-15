@@ -1,5 +1,8 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -14,9 +17,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Optional;
-import java.util.List;
 
 /**
  * Represents a tile in the game state.
@@ -39,7 +39,7 @@ public class Tile {
     /**
      * The list of objects on this tile, which can be of various types.
      */
-    private final List<TilePayload> objects;
+    private final List<TileEntity> entities;
 
     /**
      * Abstract base class for different types of tile payloads.
@@ -53,7 +53,7 @@ public class Tile {
             @JsonSubTypes.Type(value = Laser.class, name = "laser"),
             @JsonSubTypes.Type(value = Mine.class, name = "mine")
     })
-    public static abstract class TilePayload {
+    public static abstract class TileEntity {
     }
 
     /**
@@ -61,7 +61,7 @@ public class Tile {
      */
     @Data
     @NoArgsConstructor
-    public static class Wall extends TilePayload {
+    public static class Wall extends TileEntity {
     }
 
     /**
@@ -71,7 +71,7 @@ public class Tile {
     @NoArgsConstructor
     @JsonDeserialize
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-    public static class Tank extends Tile.TilePayload {
+    public static class Tank extends Tile.TileEntity {
         /**
          * The direction the tank is facing.
          */
@@ -106,7 +106,7 @@ public class Tile {
     @Data
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-    public static class Bullet extends Tile.TilePayload {
+    public static class Bullet extends Tile.TileEntity {
         /**
          * The direction the bullet is traveling.
          */
@@ -146,7 +146,7 @@ public class Tile {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-    public static class Item extends Tile.TilePayload {
+    public static class Item extends Tile.TileEntity {
         /**
          * The type of the item.
          */
@@ -159,7 +159,7 @@ public class Tile {
     @Data
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-    public static class Laser extends Tile.TilePayload {
+    public static class Laser extends Tile.TileEntity {
         /**
          * The unique identifier for the laser.
          */
@@ -177,7 +177,7 @@ public class Tile {
     @Data
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-    public static class Mine extends Tile.TilePayload {
+    public static class Mine extends Tile.TileEntity {
         /**
          * The unique identifier for the mine.
          */

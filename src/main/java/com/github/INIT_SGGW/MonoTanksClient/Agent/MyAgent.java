@@ -1,19 +1,26 @@
 package com.github.INIT_SGGW.MonoTanksClient.Agent;
 
+import java.util.List;
+import java.util.Optional;
+
+import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AbilityType;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.MoveDirection;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.RotationDirection;
-import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AbilityType;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.Warning;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEndPlayer;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
-import java.util.Optional;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.TilePayload;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.TileEntity;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Wall;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 
 public class MyAgent extends Agent {
 
@@ -32,11 +39,43 @@ public class MyAgent extends Agent {
     @Override
     public AgentResponse nextMove(GameState gameState) {
 
+        // Print map as ascii
+        System.out.println("Map:");
+        for (Tile[] row : gameState.map()) {
+            for (Tile tile : row) {
+                List<TileEntity> entities = tile.getEntities();
+                String symbol = " ";
+
+                if (tile.isVisible()) {
+                    symbol = ".";
+                }
+
+                for (TileEntity entity : entities) {
+                    if (entity instanceof Tank tank) {
+                        symbol = tank.getOwnerId().equals(myId) ? "T" : "t";
+                    } else if (entity instanceof Wall) {
+                        symbol = "#";
+                    } else if (entity instanceof Bullet) {
+                        symbol = "B";
+                    } else if (entity instanceof Laser) {
+                        symbol = "L";
+                    } else if (entity instanceof Mine) {
+                        symbol = "M";
+                    } else if (entity instanceof Item) {
+                        symbol = "I";
+                    }
+                }
+
+                System.out.print(symbol + " ");
+            }
+            System.out.println();
+        }
+
         // Find my tank
         Tank myTank = null;
         for (Tile[] row : gameState.map()) {
             for (Tile tile : row) {
-                for (TilePayload object : tile.getObjects()) {
+                for (TileEntity object : tile.getEntities()) {
                     if (object instanceof Tank tank && tank.getOwnerId().equals(myId)) {
                         myTank = tank;
                     }
@@ -80,6 +119,28 @@ public class MyAgent extends Agent {
             return AgentResponse.createAbilityUseResponse(AbilityType.DROP_MINE);
         } else {
             return AgentResponse.createPassResponse();
+        }
+    }
+
+    @Override
+    public void onWarningReceived(Warning warning, Optional<String> message) {
+        switch (warning) {
+            case PLAYER_ALREADY_MADE_ACTION_WARNING -> {
+                System.out.println("[System] ⚠️ Player already made action warning");
+            }
+            case MISSING_GAME_STATE_ID_WARNING -> {
+                System.out.println("[System] ⚠️ Missing game state ID warning");
+            }
+            case SLOW_RESPONSE_WARNING -> {
+                System.out.println("[System] ⚠️ Slow response warning");
+            }
+            case ACTION_IGNORED_DUE_TO_DEAD_WARNING -> {
+                System.out.println("[System] ⚠️ Action ignored due to dead warning");
+            }
+            case CUSTOM_WARNING -> {
+                String msg = message.orElse("No message");
+                System.out.println("[System] ⚠️ Custom Warning: " + msg);
+            }
         }
     }
 

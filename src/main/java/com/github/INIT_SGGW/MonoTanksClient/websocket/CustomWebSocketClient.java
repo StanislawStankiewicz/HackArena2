@@ -1,5 +1,14 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket;
 
+import java.net.URI;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,17 +16,10 @@ import com.github.INIT_SGGW.MonoTanksClient.Agent.MyAgent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.ConnectionRejected;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.CustomWarning;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.CustomWarning;
-
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-
-import java.net.URI;
-import java.util.Optional;
-import java.util.concurrent.*;
 
 public class CustomWebSocketClient extends WebSocketClient {
 
@@ -54,6 +56,11 @@ public class CustomWebSocketClient extends WebSocketClient {
                 switch (packet.getType()) {
                     case LOBBY_DATA:
                     case GAME_STATE:
+                    case PLAYER_ALREADY_MADE_ACTION_WARNING:
+                    case MISSING_GAME_STATE_ID_WARNING:
+                    case SLOW_RESPONSE_WARNING:
+                    case ACTION_IGNORED_DUE_TO_DEAD_WARNING:
+                    case CUSTOM_WARNING:
                         if (!semaphore.tryAcquire()) {
                             System.out.println(
                                     "[System] 🚨 Skipping packet due to previous packet not being processed yet");
@@ -169,33 +176,34 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
                 case PLAYER_ALREADY_MADE_ACTION_WARNING -> {
-                    System.out.println("[System] 🚨 Player already made action warning");
+                    this.agent.onWarningReceived(Warning.PLAYER_ALREADY_MADE_ACTION_WARNING, Optional.empty());
                     yield Optional.empty();
                 }
                 case MISSING_GAME_STATE_ID_WARNING -> {
-                    System.out.println("[System] 🚨 Missing game state ID warning");
+                    this.agent.onWarningReceived(Warning.MISSING_GAME_STATE_ID_WARNING, Optional.empty());
                     yield Optional.empty();
                 }
                 case SLOW_RESPONSE_WARNING -> {
-                    System.out.println("[System] 🚨 Slow response warning");
+                    this.agent.onWarningReceived(Warning.SLOW_RESPONSE_WARNING, Optional.empty());
                     yield Optional.empty();
                 }
                 case ACTION_IGNORED_DUE_TO_DEAD_WARNING -> {
-                    System.out.println("[System] 🚨 Action ignored due to dead warning");
+                    this.agent.onWarningReceived(Warning.ACTION_IGNORED_DUE_TO_DEAD_WARNING, Optional.empty());
                     yield Optional.empty();
                 }
+                case CUSTOM_WARNING -> {
+                    CustomWarning customWarning = this.mapper.readValue(packet.getPayload().toString(),
+                            CustomWarning.class);
+                    this.agent.onWarningReceived(Warning.CUSTOM_WARNING, Optional.of(customWarning.message()));
+                    yield Optional.empty();
+                }
+
                 case INVALID_PACKET_TYPE_ERROR -> {
                     System.out.println("[System] 🚨 Invalid packet type error");
                     yield Optional.empty();
                 }
                 case INVALID_PACKET_USAGE_ERROR -> {
                     System.out.println("[System] 🚨 Invalid packet usage error");
-                    yield Optional.empty();
-                }
-                case CUSTOM_WARNING -> {
-                    CustomWarning customWarning = this.mapper.readValue(packet.getPayload().toString(),
-                            CustomWarning.class);
-                    System.out.println("[System] ⚠️ Custom Warning: " + customWarning.message());
                     yield Optional.empty();
                 }
 

@@ -1,12 +1,24 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.*;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.*;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.*;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.LaserDirection;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Turret;
 
 public class MapDeserializer extends JsonDeserializer<Tile[][]> {
     private ObjectMapper mapper;
@@ -82,7 +94,7 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
 
     private Tile deserializeTile(JsonNode tileNode, boolean isVisible, Integer zoneIndex) {
         Optional<Integer> zone = Optional.ofNullable(zoneIndex);
-        List<Tile.TilePayload> payload = new ArrayList<>();
+        List<Tile.TileEntity> payload = new ArrayList<>();
 
         if (tileNode.isArray() && tileNode.size() > 0) {
             JsonNode payloadNode = tileNode.get(0);
@@ -93,7 +105,7 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
         return new Tile(isVisible, zone, payload);
     }
 
-    private Tile.TilePayload deserializePayload(String type, JsonNode payloadNode) {
+    private Tile.TileEntity deserializePayload(String type, JsonNode payloadNode) {
         switch (type) {
             case "wall":
                 return new Tile.Wall();
