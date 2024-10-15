@@ -94,8 +94,10 @@ public class Tile {
 
         /**
          * The secondary item associated with the tank.
+         * This is only present for the player's own tank and when they have a secondary
+         * item.
          */
-        private Integer secondaryItem;
+        private Optional<Integer> secondaryItem;
     }
 
     /**
