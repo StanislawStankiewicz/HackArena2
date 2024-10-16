@@ -73,7 +73,7 @@ public class MyAgent extends Agent {
 }
 ```
 
-The `Agent` class extends the `AgentTrait` interface, which defines the agent's
+The `MyAgent` class extends the abstract `Agent` class, which defines the agent's
 behavior. The constructor is called when the agent is created, and the
 `nextMove` method is called every game tick to determine the agent's next move.
 The `onGameEnd` method is called when the game ends to provide the final game
@@ -85,7 +85,9 @@ state.
   enum with the variants `FORWARD` and `BACKWARD`.
 - `RotationResponse`: Rotate the tank and turret left or right, where
   `RotationDirection` is an enum with the variants `LEFT` and `RIGHT`.
-- `AbilityUseResponse`: Use an ability, where `AbilityType` is an enum with variants such as `FIRE_BULLET`, `FIRE_DOUBLE_BULLET`, `USE_LASER`, `USE_RADAR`, and `DROP_MINE`.
+- `AbilityUseResponse`: Use an ability, where `AbilityType` is an enum with
+  variants such as `FIRE_BULLET`, `FIRE_DOUBLE_BULLET`, `USE_LASER`, `USE_RADAR`,
+  and `DROP_MINE`.
 - `PassResponse`: Do nothing for this turn.
 
 You can create these responses using the following static methods in `AgentResponse`:
@@ -97,8 +99,11 @@ the competition.
 
 ### Including Static Files
 
-If you need to include static files that your program should access during testing or execution, place them in the `data` folder. This folder is copied into the Docker image and will be accessible to your application at runtime. For example, you could include configuration files, pre-trained models, or any other data your agent might need.
-
+If you need to include static files that your program should access during
+testing or execution, place them in the `data` folder. This folder is copied
+into the Docker image and will be accessible to your application at runtime.
+For example, you could include configuration files, pre-trained models, or any
+other data your agent might need.
 
 ## Running the Client
 
@@ -118,7 +123,7 @@ Assuming the game server is running on `localhost:5000` (refer to the server
 repository's README for setup instructions), start the client by running:
 
 ```sh
-mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--nickname java"
+mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--nickname TEAM_NAME"
 ```
 
 The `--nickname` argument is required and must be unique. For additional
@@ -144,7 +149,9 @@ Steps:
    - Searching for and selecting `>Dev Containers: Reopen in Container`
 
 Once the container is running, you can execute all necessary commands in VS
-Code's integrated terminal, as if you were running the project locally.
+Code's integrated terminal, as if you were running the project locally. However,
+when server is running on local machine, you need to use `host.docker.internal`
+as a host.
 
 ### 3. Running in a Docker Container (Manual Setup)
 
@@ -159,7 +166,7 @@ Steps:
    ```
 2. Run the Docker container:
    ```sh
-   docker run --rm client --nickname java --host host.docker.internal
+   docker run --rm client --nickname TEAM_NAME --host host.docker.internal
    ```
 
 If the server is running on your local machine, use the
