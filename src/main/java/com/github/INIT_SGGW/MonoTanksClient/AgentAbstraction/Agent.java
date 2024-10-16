@@ -28,6 +28,15 @@ public abstract class Agent {
     public abstract void onSubsequentLobbyData(LobbyData lobbyData);
 
     /**
+     * Method called when the game is about to start.
+     * This is invoked after all lobby data has been received and before the first
+     * game state.
+     * Used internally to synchronize the agent with the game.
+     * By default, it does nothing.
+     */
+    public abstract void onGameStarting();
+
+    /**
      * Method to determine the next move of the agent based on the current game
      * state.
      *

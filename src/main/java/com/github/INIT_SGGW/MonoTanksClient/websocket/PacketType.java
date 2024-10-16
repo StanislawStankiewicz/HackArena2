@@ -16,7 +16,10 @@ public enum PacketType {
 
     LOBBY_DATA,
     LOBBY_DELETED,
-    GAME_START,
+
+    GAME_STARTING,
+    READY_TO_RECEIVE_GAME_STATE,
+    GAME_STARTED,
 
     GAME_STATE,
     MOVEMENT,

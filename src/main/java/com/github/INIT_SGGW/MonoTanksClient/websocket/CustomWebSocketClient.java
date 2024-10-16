@@ -17,6 +17,7 @@ import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.ConnectionRejected;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.CustomWarning;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.ReadyToReceiveGameState;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
@@ -55,6 +56,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
                 switch (packet.getType()) {
                     case LOBBY_DATA:
+                    case GAME_STARTING:
                     case GAME_STATE:
                     case PLAYER_ALREADY_MADE_ACTION_WARNING:
                     case MISSING_GAME_STATE_ID_WARNING:
@@ -145,7 +147,12 @@ public class CustomWebSocketClient extends WebSocketClient {
                     System.out.println("[System] 🚪 Lobby deleted");
                     yield Optional.empty();
                 }
-                case GAME_START -> {
+                case GAME_STARTING -> {
+                    System.out.println("[System] 🎲 Game starting");
+                    this.agent.onGameStarting();
+                    yield Optional.of(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
+                }
+                case GAME_STARTED -> {
                     System.out.println("[System] 🎲 Game started");
                     yield Optional.empty();
                 }
@@ -213,6 +220,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                 case ROTATION -> Optional.empty();
                 case ABILITY_USE -> Optional.empty();
                 case PASS -> Optional.empty();
+                case READY_TO_RECEIVE_GAME_STATE -> Optional.empty();
             };
 
             response.ifPresent(this::send);

@@ -1,6 +1,5 @@
 package com.github.INIT_SGGW.MonoTanksClient.Agent;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AbilityType;
@@ -13,13 +12,8 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEndPlayer;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.TileEntity;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Wall;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 
 public class MyAgent extends Agent {
@@ -37,39 +31,12 @@ public class MyAgent extends Agent {
     }
 
     @Override
+    public void onGameStarting() {
+
+    }
+
+    @Override
     public AgentResponse nextMove(GameState gameState) {
-
-        // Print map as ascii
-        System.out.println("Map:");
-        for (Tile[] row : gameState.map()) {
-            for (Tile tile : row) {
-                List<TileEntity> entities = tile.getEntities();
-                String symbol = " ";
-
-                if (tile.isVisible()) {
-                    symbol = ".";
-                }
-
-                for (TileEntity entity : entities) {
-                    if (entity instanceof Tank tank) {
-                        symbol = tank.getOwnerId().equals(myId) ? "T" : "t";
-                    } else if (entity instanceof Wall) {
-                        symbol = "#";
-                    } else if (entity instanceof Bullet) {
-                        symbol = "B";
-                    } else if (entity instanceof Laser) {
-                        symbol = "L";
-                    } else if (entity instanceof Mine) {
-                        symbol = "M";
-                    } else if (entity instanceof Item) {
-                        symbol = "I";
-                    }
-                }
-
-                System.out.print(symbol + " ");
-            }
-            System.out.println();
-        }
 
         // Find my tank
         Tank myTank = null;
