@@ -20,21 +20,45 @@ public class MyAgent extends Agent {
 
     private final String myId;
 
+    /**
+     * Constructor for the Agent class.
+     *
+     * @param lobbyData Initial lobby data used to create the agent.
+     */
     public MyAgent(LobbyData lobbyData) {
         super(lobbyData);
         this.myId = lobbyData.playerId();
     }
 
+    /**
+     * Method to handle subsequent lobby data received after the initial data.
+     *
+     * @param lobbyData The subsequent lobby data.
+     */
     @Override
     public void onSubsequentLobbyData(LobbyData lobbyData) {
 
     }
 
+    /**
+     * Method called when the game is about to start.
+     * This is invoked after all lobby data has been received and before the first
+     * game state.
+     * Used internally to synchronize the agent with the game.
+     * By default, it does nothing.
+     */
     @Override
     public void onGameStarting() {
 
     }
 
+    /**
+     * Method to determine the next move of the agent based on the current game
+     * state.
+     *
+     * @param gameState The current state of the game.
+     * @return An AgentResponse representing the agent's next move.
+     */
     @Override
     public AgentResponse nextMove(GameState gameState) {
 
@@ -89,6 +113,13 @@ public class MyAgent extends Agent {
         }
     }
 
+    /**
+     * Called when a warning is received from the server.
+     * Please, do remember that if your agent is stuck on processing warning,
+     * the next move won't be called and vice versa.
+     *
+     * @param warning The warning received from the server.
+     */
     @Override
     public void onWarningReceived(Warning warning, Optional<String> message) {
         switch (warning) {
@@ -111,6 +142,11 @@ public class MyAgent extends Agent {
         }
     }
 
+    /**
+     * Method to handle the end of the game.
+     *
+     * @param gameEnd The final state of the game when it ends.
+     */
     @Override
     public void onGameEnd(GameEnd gameEnd) {
         System.out.println("Game ended");

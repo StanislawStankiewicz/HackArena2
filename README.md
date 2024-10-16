@@ -85,12 +85,20 @@ state.
   enum with the variants `FORWARD` and `BACKWARD`.
 - `RotationResponse`: Rotate the tank and turret left or right, where
   `RotationDirection` is an enum with the variants `LEFT` and `RIGHT`.
-- `ShootResponse`: Shoot a projectile in the direction the turret is facing.
+- `AbilityUseResponse`: Use an ability, where `AbilityType` is an enum with variants such as `FIRE_BULLET`, `FIRE_DOUBLE_BULLET`, `USE_LASER`, `USE_RADAR`, and `DROP_MINE`.
+- `PassResponse`: Do nothing for this turn.
+
+You can create these responses using the following static methods in `AgentResponse`:
 
 You can modify the mentioned file and create more files in the
 `src/main/java/com/github/INIT_SGGW/MonoTanksClient/Agent` directory. Do not
 modify any other files, as this may prevent us from running your agent during
 the competition.
+
+### Including Static Files
+
+If you need to include static files that your program should access during testing or execution, place them in the `data` folder. This folder is copied into the Docker image and will be accessible to your application at runtime. For example, you could include configuration files, pre-trained models, or any other data your agent might need.
+
 
 ## Running the Client
 

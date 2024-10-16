@@ -25,5 +25,8 @@ WORKDIR /app
 # Copy the built JAR file from the build stage
 COPY --from=build /app/target/MonoTanksClient-1.0-SNAPSHOT.jar ./MonoTanksClient.jar
 
+# Copy the data directory. Developers can place their files in this directory and application will have access to them.
+COPY ./data /app/data
+
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "MonoTanksClient.jar"]
