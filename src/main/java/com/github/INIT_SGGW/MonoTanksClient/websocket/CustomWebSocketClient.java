@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -108,6 +109,20 @@ public class CustomWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         logger.info("Connection closed: {}", reason);
+        logger.info("Exiting program...");
+
+        // Shutdown the executor service
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
+
+        // Exit the program
+        System.exit(0);
     }
 
     @Override
