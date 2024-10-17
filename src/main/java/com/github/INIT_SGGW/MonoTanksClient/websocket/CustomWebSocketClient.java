@@ -8,6 +8,8 @@ import java.util.concurrent.Semaphore;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,6 +25,8 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameStat
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 
 public class CustomWebSocketClient extends WebSocketClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomWebSocketClient.class);
 
     private Agent agent;
     private final ObjectMapper mapper;
@@ -45,7 +49,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshake) {
-        System.out.println("[System] 🎉 Successfully connected to the server");
+        logger.info("🎉 Successfully connected to the server");
     }
 
     @Override
@@ -64,8 +68,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                     case ACTION_IGNORED_DUE_TO_DEAD_WARNING:
                     case CUSTOM_WARNING:
                         if (!semaphore.tryAcquire()) {
-                            System.out.println(
-                                    "[System] 🚨 Skipping packet due to previous packet not being processed yet");
+                            logger.info("🚨 Skipping packet due to previous packet not being processed yet");
                             return;
                         }
                         try {
@@ -91,12 +94,12 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
             } catch (JsonProcessingException e) {
-                System.err.println("Error processing message: " + message);
-                System.err.println("Exception details:");
+                logger.error("Error processing message: {}", message);
+                logger.error("Exception details:");
                 e.printStackTrace();
             } catch (Exception e) {
-                System.err.println("Unexpected error processing message: " + message);
-                System.err.println("Exception details:");
+                logger.error("Unexpected error processing message: {}", message);
+                logger.error("Exception details:");
                 e.printStackTrace();
             }
         });
@@ -104,7 +107,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("Connection closed: " + reason);
+        logger.info("Connection closed: {}", reason);
     }
 
     @Override
@@ -122,38 +125,38 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
                 case CONNECTION_ACCEPTED -> {
-                    System.out.println("[System] 🎉 Connection accepted");
+                    logger.info("🎉 Connection accepted");
                     yield Optional.empty();
                 }
                 case CONNECTION_REJECTED -> {
                     ConnectionRejected connectionRejected = this.mapper.readValue(packet.getPayload().toString(),
                             ConnectionRejected.class);
-                    System.out.println("[System] 🚨 Connection rejected -> " + connectionRejected.reason());
+                    logger.info("🚨 Connection rejected -> {}", connectionRejected.reason());
                     yield Optional.empty();
                 }
 
                 case LOBBY_DATA -> {
-                    System.out.println("[System] 🎳 Lobby data received");
+                    logger.info("🎳 Lobby data received");
                     LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
                     if (this.agent == null) {
                         this.agent = new MyAgent(lobbyData);
-                        System.out.println("[System] 🤖 Created agent");
+                        logger.info("🤖 Created agent");
                     } else {
                         this.agent.onSubsequentLobbyData(lobbyData);
                     }
                     yield Optional.empty();
                 }
                 case LOBBY_DELETED -> {
-                    System.out.println("[System] 🚪 Lobby deleted");
+                    logger.info("🚪 Lobby deleted");
                     yield Optional.empty();
                 }
                 case GAME_STARTING -> {
-                    System.out.println("[System] 🎲 Game starting");
+                    logger.info("🎲 Game starting");
                     this.agent.onGameStarting();
                     yield Optional.of(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
                 }
                 case GAME_STARTED -> {
-                    System.out.println("[System] 🎲 Game started");
+                    logger.info("🎲 Game started");
                     yield Optional.empty();
                 }
 
@@ -169,14 +172,14 @@ public class CustomWebSocketClient extends WebSocketClient {
 
                         yield Optional.of(messageToSend);
                     } catch (Exception e) {
-                        System.err.println("Error in GAME_STATE case:");
+                        logger.error("Error in GAME_STATE case:");
                         e.printStackTrace();
                         yield Optional.empty();
                     }
                 }
 
                 case GAME_END -> {
-                    System.out.println("🏁 Game ended");
+                    logger.info("🏁 Game ended");
                     GameEnd gameEnd = this.mapper.readValue(packet.getPayload().toString(), GameEnd.class);
                     this.agent.onGameEnd(gameEnd);
                     yield Optional.empty();
@@ -206,11 +209,11 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
                 case INVALID_PACKET_TYPE_ERROR -> {
-                    System.out.println("[System] 🚨 Invalid packet type error");
+                    logger.info("🚨 Invalid packet type error");
                     yield Optional.empty();
                 }
                 case INVALID_PACKET_USAGE_ERROR -> {
-                    System.out.println("[System] 🚨 Invalid packet usage error");
+                    logger.info("🚨 Invalid packet usage error");
                     yield Optional.empty();
                 }
 
@@ -226,7 +229,7 @@ public class CustomWebSocketClient extends WebSocketClient {
             response.ifPresent(this::send);
 
         } catch (JsonProcessingException e) {
-            System.out.println("Error while processing packet: " + e.getMessage());
+            logger.error("Error while processing packet: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -2,6 +2,9 @@ package com.github.INIT_SGGW.MonoTanksClient.Agent;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AbilityType;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.Agent;
 import com.github.INIT_SGGW.MonoTanksClient.AgentAbstraction.AgentResponse;
@@ -17,6 +20,7 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Til
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 
 public class MyAgent extends Agent {
+    private static final Logger logger = LoggerFactory.getLogger(MyAgent.class);
 
     private final String myId;
 
@@ -124,20 +128,20 @@ public class MyAgent extends Agent {
     public void onWarningReceived(Warning warning, Optional<String> message) {
         switch (warning) {
             case PLAYER_ALREADY_MADE_ACTION_WARNING -> {
-                System.out.println("[System] ⚠️ Player already made action warning");
+                logger.warn("⚠️ Player already made action warning");
             }
             case MISSING_GAME_STATE_ID_WARNING -> {
-                System.out.println("[System] ⚠️ Missing game state ID warning");
+                logger.warn("⚠️ Missing game state ID warning");
             }
             case SLOW_RESPONSE_WARNING -> {
-                System.out.println("[System] ⚠️ Slow response warning");
+                logger.warn("⚠️ Slow response warning");
             }
             case ACTION_IGNORED_DUE_TO_DEAD_WARNING -> {
-                System.out.println("[System] ⚠️ Action ignored due to dead warning");
+                logger.warn("⚠️ Action ignored due to dead warning");
             }
             case CUSTOM_WARNING -> {
                 String msg = message.orElse("No message");
-                System.out.println("[System] ⚠️ Custom Warning: " + msg);
+                logger.warn("⚠️ Custom Warning: {}", msg);
             }
         }
     }
@@ -149,14 +153,14 @@ public class MyAgent extends Agent {
      */
     @Override
     public void onGameEnd(GameEnd gameEnd) {
-        System.out.println("Game ended");
+        logger.info("Game ended");
         GameEndPlayer winner = gameEnd.players()[0];
         if (winner.id().equals(this.myId)) {
-            System.out.println("I won!");
+            logger.info("I won!");
         }
 
         for (GameEndPlayer player : gameEnd.players()) {
-            System.out.println(player.nickname() + " - " + player.score());
+            logger.info("{} - {}", player.nickname(), player.score());
         }
     }
 }

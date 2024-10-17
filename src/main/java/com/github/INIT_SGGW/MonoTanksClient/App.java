@@ -1,15 +1,21 @@
 package com.github.INIT_SGGW.MonoTanksClient;
 
-import com.github.INIT_SGGW.MonoTanksClient.utils.Args;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.CustomWebSocketClient;
-import org.java_websocket.client.WebSocketClient;
-import picocli.CommandLine;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.java_websocket.client.WebSocketClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.INIT_SGGW.MonoTanksClient.utils.Args;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.CustomWebSocketClient;
+
+import picocli.CommandLine;
+
 public class App {
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     public static URI constructUrl(String host, int port, String code, String nickname)
             throws URISyntaxException {
@@ -36,14 +42,13 @@ public class App {
             return;
         }
 
-        System.out.println("[System] 🚀 Starting client...");
+        logger.info("🚀 Starting client...");
 
         String serverAddress;
         try {
             serverAddress = InetAddress.getByName(arguments.getHost()).getHostAddress();
         } catch (UnknownHostException e) {
-            System.err.println("[System] 🚨 Invalid server address: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("🚨 Invalid server address: {}", e.getMessage(), e);
             return;
         }
 
@@ -55,17 +60,16 @@ public class App {
                     arguments.getCode(),
                     arguments.getNickname());
         } catch (URISyntaxException e) {
-            System.err.println("[System] 🚨 Invalid URI: " + e.getMessage());
+            logger.error("🚨 Invalid URI: {}", e.getMessage());
             return;
         }
 
         try {
-            System.out.println("[System] 📞 Connecting to the server: " + uri);
+            logger.info("📞 Connecting to the server: {}", uri);
             WebSocketClient client = new CustomWebSocketClient(uri);
             client.run();
         } catch (Exception e) {
-            System.err.println("[System] 🚨 An error occurred: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("🚨 An error occurred: {}", e.getMessage(), e);
         }
     }
 }
