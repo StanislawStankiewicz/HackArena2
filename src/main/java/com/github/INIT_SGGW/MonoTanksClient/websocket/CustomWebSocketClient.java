@@ -69,7 +69,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                     case ACTION_IGNORED_DUE_TO_DEAD_WARNING:
                     case CUSTOM_WARNING:
                         if (!semaphore.tryAcquire()) {
-                            logger.info("🚨 Skipping packet due to previous packet not being processed yet");
+                            logger.warn("🚨 Skipping packet due to previous packet not being processed yet");
                             return;
                         }
                         try {
@@ -95,21 +95,19 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
             } catch (JsonProcessingException e) {
-                logger.error("Error processing message: {}", message);
-                logger.error("Exception details:");
-                e.printStackTrace();
+                logger.error("🚨 Error processing message: {}", message);
+                logger.error("🔍 Exception details:", e);
             } catch (Exception e) {
-                logger.error("Unexpected error processing message: {}", message);
-                logger.error("Exception details:");
-                e.printStackTrace();
+                logger.error("🚨 Unexpected error processing message: {}", message);
+                logger.error("🔍 Exception details:", e);
             }
         });
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        logger.info("Connection closed: {}", reason);
-        logger.info("Exiting program...");
+        logger.info("🔌 Connection closed: {}", reason);
+        logger.info("🚪 Exiting program...");
 
         // Shutdown the executor service
         executorService.shutdown();
@@ -127,7 +125,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        ex.printStackTrace();
+        logger.error("🚨 WebSocket error occurred", ex);
     }
 
     private void processPacket(Packet packet) {
@@ -146,7 +144,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                 case CONNECTION_REJECTED -> {
                     ConnectionRejected connectionRejected = this.mapper.readValue(packet.getPayload().toString(),
                             ConnectionRejected.class);
-                    logger.info("🚨 Connection rejected -> {}", connectionRejected.reason());
+                    logger.warn("🚫 Connection rejected -> {}", connectionRejected.reason());
                     yield Optional.empty();
                 }
 
@@ -171,7 +169,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                     yield Optional.of(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
                 }
                 case GAME_STARTED -> {
-                    logger.info("🎲 Game started");
+                    logger.info("🏁 Game started");
                     yield Optional.empty();
                 }
 
@@ -224,11 +222,11 @@ public class CustomWebSocketClient extends WebSocketClient {
                 }
 
                 case INVALID_PACKET_TYPE_ERROR -> {
-                    logger.info("🚨 Invalid packet type error");
+                    logger.error("🚨 Invalid packet type error");
                     yield Optional.empty();
                 }
                 case INVALID_PACKET_USAGE_ERROR -> {
-                    logger.info("🚨 Invalid packet usage error");
+                    logger.error("🚨 Invalid packet usage error");
                     yield Optional.empty();
                 }
 
@@ -244,7 +242,7 @@ public class CustomWebSocketClient extends WebSocketClient {
             response.ifPresent(this::send);
 
         } catch (JsonProcessingException e) {
-            logger.error("Error while processing packet: {}", e.getMessage());
+            logger.error("🚨 Error while processing packet: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

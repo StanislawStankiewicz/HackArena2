@@ -153,14 +153,14 @@ public class MyAgent extends Agent {
      */
     @Override
     public void onGameEnd(GameEnd gameEnd) {
-        logger.info("Game ended");
+        logger.info("🏁 Game ended");
         GameEndPlayer winner = gameEnd.players()[0];
         if (winner.id().equals(this.myId)) {
-            logger.info("I won!");
+            logger.info("🏆 I won!");
         }
 
         for (GameEndPlayer player : gameEnd.players()) {
-            logger.info("{} - {}", player.nickname(), player.score());
+            logger.info("👤 {} - {}", player.nickname(), player.score());
         }
     }
 }
