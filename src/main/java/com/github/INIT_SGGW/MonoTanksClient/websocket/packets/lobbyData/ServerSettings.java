@@ -51,7 +51,7 @@ public record ServerSettings(
         Integer tickAtStart,
 
         /**
-         * The name of the match.
+         * The name of the match. It can be null.
          */
         String matchName
 
