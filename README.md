@@ -151,7 +151,11 @@ Steps:
 Once the container is running, you can execute all necessary commands in VS
 Code's integrated terminal, as if you were running the project locally. However,
 when server is running on local machine, you need to use `host.docker.internal`
-as a host.
+as a host. So the command to run the client would be:
+
+```sh
+mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--host host.docker.internal --nickname TEAM_NAME"
+```
 
 ### 3. Running in a Docker Container (Manual Setup)
 

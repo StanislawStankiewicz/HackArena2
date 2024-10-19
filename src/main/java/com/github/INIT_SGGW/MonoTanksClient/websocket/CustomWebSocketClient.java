@@ -37,8 +37,8 @@ public class CustomWebSocketClient extends WebSocketClient {
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
 
-        // Increase buffer size to 16KB
-        this.setReceiveBufferSize(16 * 1024);
+        // Increase buffer size to 1MB
+        this.setReceiveBufferSize(1 * 1024 * 1024);
 
         // Disable connection lost timeout
         this.setConnectionLostTimeout(0);
@@ -58,42 +58,7 @@ public class CustomWebSocketClient extends WebSocketClient {
         executorService.submit(() -> {
             try {
                 Packet packet = this.mapper.readValue(message, Packet.class);
-
-                switch (packet.getType()) {
-                    case LOBBY_DATA:
-                    case GAME_STARTING:
-                    case GAME_STATE:
-                    case PLAYER_ALREADY_MADE_ACTION_WARNING:
-                    case MISSING_GAME_STATE_ID_WARNING:
-                    case SLOW_RESPONSE_WARNING:
-                    case ACTION_IGNORED_DUE_TO_DEAD_WARNING:
-                    case CUSTOM_WARNING:
-                        if (!semaphore.tryAcquire()) {
-                            logger.warn("🚨 Skipping packet due to previous packet not being processed yet");
-                            return;
-                        }
-                        try {
-                            processPacket(packet);
-                        } finally {
-                            semaphore.release();
-                        }
-                        break;
-
-                    case GAME_END:
-                        try {
-                            semaphore.acquire();
-                            processPacket(packet);
-                            semaphore.release();
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-
-                    default:
-                        processPacket(packet);
-                        break;
-                }
-
+                processPacket(packet);
             } catch (JsonProcessingException e) {
                 logger.error("🚨 Error processing message: {}", message);
                 logger.error("🔍 Exception details:", e);
@@ -130,120 +95,142 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     private void processPacket(Packet packet) {
         try {
-            Optional<String> response = switch (packet.getType()) {
-                case PING -> {
-                    Packet pongPacket = new Packet(PacketType.PONG, this.mapper.createObjectNode());
-                    String messageToSend = this.mapper.writeValueAsString(pongPacket);
-                    yield Optional.of(messageToSend);
+            switch (packet.getType()) {
+                case PING, CONNECTION_REJECTED, CONNECTION_ACCEPTED, GAME_NOT_STARTED, GAME_IN_PROGRESS, GAME_STARTED,
+                        INVALID_PACKET_TYPE_ERROR, INVALID_PACKET_USAGE_ERROR -> {
+                    // These cases don't interact with the agent, so we don't need the semaphore
+                    handleNonAgentPacket(packet);
                 }
-
-                case CONNECTION_ACCEPTED -> {
-                    logger.info("🎉 Connection accepted");
-                    yield Optional.empty();
-                }
-                case CONNECTION_REJECTED -> {
-                    ConnectionRejected connectionRejected = this.mapper.readValue(packet.getPayload().toString(),
-                            ConnectionRejected.class);
-                    logger.warn("🚫 Connection rejected -> {}", connectionRejected.reason());
-                    yield Optional.empty();
-                }
-
-                case LOBBY_DATA -> {
-                    logger.info("🎳 Lobby data received");
-                    LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
-                    if (this.agent == null) {
-                        this.agent = new MyAgent(lobbyData);
-                        logger.info("🤖 Created agent");
+                case LOBBY_DATA, GAME_STARTING, GAME_STATE, GAME_ENDED, PLAYER_ALREADY_MADE_ACTION_WARNING,
+                        MISSING_GAME_STATE_ID_WARNING, SLOW_RESPONSE_WARNING, ACTION_IGNORED_DUE_TO_DEAD_WARNING,
+                        CUSTOM_WARNING -> {
+                    // These cases interact with the agent, so we need to use the semaphore
+                    if (semaphore.tryAcquire(1, TimeUnit.SECONDS)) {
+                        try {
+                            handleAgentPacket(packet);
+                        } finally {
+                            semaphore.release();
+                        }
                     } else {
-                        this.agent.onSubsequentLobbyData(lobbyData);
-                    }
-                    yield Optional.empty();
-                }
-                case LOBBY_DELETED -> {
-                    logger.info("🚪 Lobby deleted");
-                    yield Optional.empty();
-                }
-                case GAME_STARTING -> {
-                    logger.info("🎲 Game starting");
-                    this.agent.onGameStarting();
-                    yield Optional.of(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
-                }
-                case GAME_STARTED -> {
-                    logger.info("🏁 Game started");
-                    yield Optional.empty();
-                }
-
-                case GAME_STATE -> {
-                    try {
-                        JsonNode payload = packet.getPayload();
-
-                        GameState gameState = this.mapper.treeToValue(payload, GameState.class);
-                        AgentResponse agentResponse = this.agent.nextMove(gameState);
-
-                        agentResponse.payload.put("gameStateId", gameState.id());
-                        String messageToSend = this.mapper.writeValueAsString(agentResponse);
-
-                        yield Optional.of(messageToSend);
-                    } catch (Exception e) {
-                        logger.error("Error in GAME_STATE case:");
-                        e.printStackTrace();
-                        yield Optional.empty();
+                        logger.warn("🚨 Skipping packet due to timeout waiting for semaphore: {}", packet.getType());
                     }
                 }
-
-                case GAME_END -> {
-                    logger.info("🏁 Game ended");
-                    GameEnd gameEnd = this.mapper.readValue(packet.getPayload().toString(), GameEnd.class);
-                    this.agent.onGameEnd(gameEnd);
-                    yield Optional.empty();
-                }
-
-                case PLAYER_ALREADY_MADE_ACTION_WARNING -> {
-                    this.agent.onWarningReceived(Warning.PLAYER_ALREADY_MADE_ACTION_WARNING, Optional.empty());
-                    yield Optional.empty();
-                }
-                case MISSING_GAME_STATE_ID_WARNING -> {
-                    this.agent.onWarningReceived(Warning.MISSING_GAME_STATE_ID_WARNING, Optional.empty());
-                    yield Optional.empty();
-                }
-                case SLOW_RESPONSE_WARNING -> {
-                    this.agent.onWarningReceived(Warning.SLOW_RESPONSE_WARNING, Optional.empty());
-                    yield Optional.empty();
-                }
-                case ACTION_IGNORED_DUE_TO_DEAD_WARNING -> {
-                    this.agent.onWarningReceived(Warning.ACTION_IGNORED_DUE_TO_DEAD_WARNING, Optional.empty());
-                    yield Optional.empty();
-                }
-                case CUSTOM_WARNING -> {
-                    CustomWarning customWarning = this.mapper.readValue(packet.getPayload().toString(),
-                            CustomWarning.class);
-                    this.agent.onWarningReceived(Warning.CUSTOM_WARNING, Optional.of(customWarning.message()));
-                    yield Optional.empty();
-                }
-
-                case INVALID_PACKET_TYPE_ERROR -> {
-                    logger.error("🚨 Invalid packet type error");
-                    yield Optional.empty();
-                }
-                case INVALID_PACKET_USAGE_ERROR -> {
-                    logger.error("🚨 Invalid packet usage error");
-                    yield Optional.empty();
-                }
-
-                // Should never happen
-                case PONG -> Optional.empty();
-                case MOVEMENT -> Optional.empty();
-                case ROTATION -> Optional.empty();
-                case ABILITY_USE -> Optional.empty();
-                case PASS -> Optional.empty();
-                case READY_TO_RECEIVE_GAME_STATE -> Optional.empty();
-            };
-
-            response.ifPresent(this::send);
-
+                default -> logger.warn("Unexpected packet type in processPacket: {}", packet.getType());
+            }
         } catch (JsonProcessingException e) {
             logger.error("🚨 Error while processing packet: {}", e.getMessage());
             throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            logger.error("🚨 Interrupted while waiting for semaphore", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void handleNonAgentPacket(Packet packet) throws JsonProcessingException {
+        switch (packet.getType()) {
+            case PING -> {
+                Packet pongPacket = new Packet(PacketType.PONG, this.mapper.createObjectNode());
+                String messageToSend = this.mapper.writeValueAsString(pongPacket);
+                sendMessage(messageToSend);
+            }
+            case CONNECTION_REJECTED -> {
+                ConnectionRejected connectionRejected = this.mapper.readValue(packet.getPayload().toString(),
+                        ConnectionRejected.class);
+                logger.warn("🚫 Connection rejected -> {}", connectionRejected.reason());
+            }
+            case CONNECTION_ACCEPTED -> {
+                logger.info("🎉 Connection accepted");
+                sendMessage(this.mapper.writeValueAsString(new Packet(PacketType.LOBBY_DATA_REQUEST, null)));
+            }
+            case GAME_NOT_STARTED -> logger.info("🏁 Game not started");
+            case GAME_IN_PROGRESS -> logger.info("🏁 Game in progress");
+            case GAME_STARTED -> logger.info("🏁 Game started");
+            case INVALID_PACKET_TYPE_ERROR -> logger.error("🚨 Invalid packet type error");
+            case INVALID_PACKET_USAGE_ERROR -> logger.error("🚨 Invalid packet usage error");
+        }
+    }
+
+    private void handleAgentPacket(Packet packet) throws JsonProcessingException {
+        switch (packet.getType()) {
+            case LOBBY_DATA -> {
+                logger.info("🎳 Lobby data received");
+                LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
+                if (this.agent == null) {
+                    this.agent = new MyAgent(lobbyData);
+                    logger.info("🤖 Created agent");
+
+                    if (lobbyData.serverSettings().sandboxMode()) {
+                        logger.info("🏜️ Sandbox mode enabled");
+                        sendMessage(this.mapper
+                                .writeValueAsString(new Packet(PacketType.READY_TO_RECEIVE_GAME_STATE, null)));
+                        sendMessage(this.mapper.writeValueAsString(new Packet(PacketType.GAME_STATUS_REQUEST, null)));
+                    }
+                } else {
+                    this.agent.onSubsequentLobbyData(lobbyData);
+                }
+            }
+            case GAME_STARTING -> {
+                logger.info("🎲 Game starting");
+
+                if (this.agent == null) {
+                    logger.warn("🤖 Agent is not initialized yet. Waiting for initialization...");
+                    executorService.submit(() -> {
+                        while (this.agent == null) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                logger.error("🚨 Interrupted while waiting for agent initialization", e);
+                                return;
+                            }
+                        }
+                        try {
+                            sendMessage(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
+                            logger.info("🚀 Sent ReadyToReceiveGameState after agent initialization");
+                        } catch (JsonProcessingException e) {
+                            logger.error("🚨 Error while sending ReadyToReceiveGameState", e);
+                        }
+                    });
+                } else {
+                    sendMessage(this.mapper.writeValueAsString(new ReadyToReceiveGameState()));
+                }
+            }
+            case GAME_STATE -> {
+                JsonNode payload = packet.getPayload();
+                GameState gameState = this.mapper.treeToValue(payload, GameState.class);
+                AgentResponse agentResponse = this.agent.nextMove(gameState);
+
+                agentResponse.payload.put("gameStateId", gameState.id());
+                String messageToSend = this.mapper.writeValueAsString(agentResponse);
+
+                sendMessage(messageToSend);
+            }
+            case GAME_ENDED -> {
+                logger.info("🏁 Game ended");
+                GameEnd gameEnd = this.mapper.readValue(packet.getPayload().toString(), GameEnd.class);
+                this.agent.onGameEnd(gameEnd);
+            }
+            case PLAYER_ALREADY_MADE_ACTION_WARNING ->
+                this.agent.onWarningReceived(Warning.PLAYER_ALREADY_MADE_ACTION_WARNING, Optional.empty());
+            case MISSING_GAME_STATE_ID_WARNING ->
+                this.agent.onWarningReceived(Warning.MISSING_GAME_STATE_ID_WARNING, Optional.empty());
+            case SLOW_RESPONSE_WARNING ->
+                this.agent.onWarningReceived(Warning.SLOW_RESPONSE_WARNING, Optional.empty());
+            case ACTION_IGNORED_DUE_TO_DEAD_WARNING ->
+                this.agent.onWarningReceived(Warning.ACTION_IGNORED_DUE_TO_DEAD_WARNING, Optional.empty());
+            case CUSTOM_WARNING -> {
+                CustomWarning customWarning = this.mapper.readValue(packet.getPayload().toString(),
+                        CustomWarning.class);
+                this.agent.onWarningReceived(Warning.CUSTOM_WARNING, Optional.of(customWarning.message()));
+            }
+        }
+    }
+
+    private void sendMessage(String message) {
+        try {
+            send(message);
+        } catch (Exception e) {
+            logger.error("🚨 Error sending message: {}", message, e);
         }
     }
 }

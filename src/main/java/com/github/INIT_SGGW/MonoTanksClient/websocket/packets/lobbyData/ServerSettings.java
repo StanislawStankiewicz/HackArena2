@@ -30,12 +30,30 @@ public record ServerSettings(
         int broadcastInterval,
 
         /**
-         * Whether broadcasts are sent eagerly. If true, next game state is sent immediately after all players have sent their actions.
+         * Whether broadcasts are sent eagerly. If true, next game state is sent
+         * immediately after all players have sent their actions.
          */
         boolean eagerBroadcast,
 
         /**
          * The number of ticks after which the game ends.
          */
-        long ticks) {
+        long ticks,
+
+        /**
+         * Whether the sandbox mode is enabled.
+         */
+        boolean sandboxMode,
+
+        /**
+         * The tick at which the game starts. It is null in sandbox mode.
+         */
+        Integer tickAtStart,
+
+        /**
+         * The name of the match.
+         */
+        String matchName
+
+) {
 }
