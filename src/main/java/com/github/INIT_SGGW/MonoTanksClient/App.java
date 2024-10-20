@@ -5,7 +5,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
-import org.java_websocket.client.WebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ import picocli.CommandLine;
 
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static CustomWebSocketClient client;
 
     public static URI constructUrl(String host, int port, String code, String nickname)
             throws URISyntaxException {
@@ -66,7 +66,16 @@ public class App {
 
         try {
             logger.info("📞 Connecting to the server: {}", uri);
-            WebSocketClient client = new CustomWebSocketClient(uri);
+            client = new CustomWebSocketClient(uri);
+
+            // Add simplified shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                logger.info("⚠️ Shutdown signal received");
+                if (client != null && client.isOpen()) {
+                    client.close();
+                }
+            }));
+
             client.run();
         } catch (Exception e) {
             logger.error("🚨 An error occurred: {}", e.getMessage(), e);

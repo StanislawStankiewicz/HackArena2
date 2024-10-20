@@ -170,7 +170,7 @@ Steps:
    ```
 2. Run the Docker container:
    ```sh
-   docker run --rm client --nickname TEAM_NAME --host host.docker.internal
+   docker run --rm client --host host.docker.internal --nickname TEAM_NAME
    ```
 
 If the server is running on your local machine, use the

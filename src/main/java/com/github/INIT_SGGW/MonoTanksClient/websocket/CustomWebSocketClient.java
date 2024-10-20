@@ -72,20 +72,11 @@ public class CustomWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         logger.info("🔌 Connection closed: {}", reason);
-        logger.info("🚪 Exiting program...");
 
         // Shutdown the executor service
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-        }
+        executorService.shutdownNow();
 
-        // Exit the program
-        System.exit(0);
+        logger.info("🚪 WebSocket client shutdown completed");
     }
 
     @Override
