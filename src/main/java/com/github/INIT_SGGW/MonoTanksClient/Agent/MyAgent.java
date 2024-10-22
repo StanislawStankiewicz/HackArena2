@@ -86,6 +86,10 @@ public class MyAgent extends Agent {
                             } else if (tank.getDirection() == Direction.RIGHT) {
                                 symbol = ">";
                             }
+
+                            // There is also turret direction
+                            // tank.getTurret().direction()
+
                         } else {
                             symbol = "T";
                         }
@@ -125,7 +129,6 @@ public class MyAgent extends Agent {
                 if (tile.getZoneIndex().isPresent()) {
                     int zoneIndex = tile.getZoneIndex().get();
                     if (tile.isVisible()) {
-                        // Convert Ascii int to char
                         symbol = String.valueOf((char) zoneIndex);
                     } else {
                         symbol = String.valueOf((char) (zoneIndex + 32));
