@@ -18,7 +18,7 @@ public record GameState(
         /**
          * The current tick of the game.
          */
-        float tick,
+        int tick,
 
         /**
          * The array of players in the game.
