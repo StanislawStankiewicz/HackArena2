@@ -1,5 +1,6 @@
 package com.github.INIT_SGGW.MonoTanksClient.Agent;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -14,9 +15,17 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.Warning;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameEnd.GameEndPlayer;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.GameState;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.ItemType;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.LaserDirection;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Mine;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.TileEntity;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Wall;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.lobbyData.LobbyData;
 
 public class MyAgent extends Agent {
@@ -53,6 +62,80 @@ public class MyAgent extends Agent {
      */
     @Override
     public AgentResponse nextMove(GameState gameState) {
+
+        // Print map as ascii
+        System.out.println("Map:");
+        for (Tile[] row : gameState.map()) {
+            for (Tile tile : row) {
+                List<TileEntity> entities = tile.getEntities();
+                String symbol = " ";
+
+                if (tile.isVisible()) {
+                    symbol = ".";
+                }
+
+                for (TileEntity entity : entities) {
+                    if (entity instanceof Tank tank) {
+                        if (tank.getOwnerId().equals(myId)) {
+                            if (tank.getDirection() == Direction.UP) {
+                                symbol = "^";
+                            } else if (tank.getDirection() == Direction.DOWN) {
+                                symbol = "v";
+                            } else if (tank.getDirection() == Direction.LEFT) {
+                                symbol = "<";
+                            } else if (tank.getDirection() == Direction.RIGHT) {
+                                symbol = ">";
+                            }
+                        } else {
+                            symbol = "T";
+                        }
+                    } else if (entity instanceof Wall) {
+                        symbol = "#";
+                    } else if (entity instanceof Bullet bullet) {
+                        if (bullet.getDirection() == Direction.UP) {
+                            symbol = "↑";
+                        } else if (bullet.getDirection() == Direction.DOWN) {
+                            symbol = "↓";
+                        } else if (bullet.getDirection() == Direction.LEFT) {
+                            symbol = "←";
+                        } else if (bullet.getDirection() == Direction.RIGHT) {
+                            symbol = "→";
+                        }
+                    } else if (entity instanceof Laser laser) {
+                        if (laser.getOrientation() == LaserDirection.VERTICAL) {
+                            symbol = "|";
+                        } else if (laser.getOrientation() == LaserDirection.HORIZONTAL) {
+                            symbol = "-";
+                        }
+                    } else if (entity instanceof Mine) {
+                        symbol = "X";
+                    } else if (entity instanceof Item item) {
+                        if (item.getItemType() == ItemType.DOUBLE_BULLET) {
+                            symbol = "D";
+                        } else if (item.getItemType() == ItemType.LASER) {
+                            symbol = "L";
+                        } else if (item.getItemType() == ItemType.MINE) {
+                            symbol = "M";
+                        } else if (item.getItemType() == ItemType.RADAR) {
+                            symbol = "R";
+                        }
+                    }
+                }
+
+                if (tile.getZoneIndex().isPresent()) {
+                    int zoneIndex = tile.getZoneIndex().get();
+                    if (tile.isVisible()) {
+                        // Convert Ascii int to char
+                        symbol = String.valueOf((char) zoneIndex);
+                    } else {
+                        symbol = String.valueOf((char) (zoneIndex + 32));
+                    }
+                }
+
+                System.out.print(symbol + " ");
+            }
+            System.out.println();
+        }
 
         // Find my tank
         Tank myTank = null;
