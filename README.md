@@ -12,6 +12,14 @@ more information about the server and GUI client in the following repository:
 
 ## Development
 
+Clone this repo using git:
+```sh
+git clone https://github.com/INIT-SGGW/HackArena2.0-MonoTanks-Java.git
+```
+
+or download the [zip file](https://github.com/INIT-SGGW/HackArena2.0-MonoTanks-Java/archive/refs/heads/main.zip)
+and extract it.
+
 The bot logic you are going to implement is located in
 `src/main/java/com/github/INIT_SGGW/MonoTanksBot/Bot/MyBot.java`:
 
