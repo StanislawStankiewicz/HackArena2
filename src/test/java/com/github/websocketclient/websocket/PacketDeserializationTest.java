@@ -1,13 +1,15 @@
 package com.github.websocketclient.websocket;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.Packet;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.PacketType;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.github.INIT_SGGW.MonoTanksBot.websocket.Packet;
+import com.github.INIT_SGGW.MonoTanksBot.websocket.PacketType;
 
 public class PacketDeserializationTest {
     private ObjectMapper mapper;

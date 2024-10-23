@@ -1,26 +1,26 @@
-# Java WebSocket Client for Hackathon 2024
+# MonoTanks API wrapper in Java for HackArena 2.0
 
-This Java-based WebSocket client was developed for the Hackathon 2024, organized
-by WULS-SGGW. It serves as a framework for participants to create AI agents that
-can play the game.
+This API wrapper for MonoTanks game for the HackArena 2.0, organized by
+KN init. It is implemented as a WebSocket client written in Java and can be
+used to create bots for the game.
 
 To fully test and run the game, you will also need the game server and GUI
 client, as the GUI provides a visual representation of gameplay. You can find
 more information about the server and GUI client in the following repository:
 
-- [Server and GUI Client Repository](https://github.com/INIT-SGGW/HackArena2024H2-Game)
+- [Server and GUI Client Repository](https://github.com/INIT-SGGW/HackArena2.0-MonoTanks)
 
 ## Development
 
-The agent logic you are going to implement is located in
-`src/main/java/com/github/INIT_SGGW/MonoTanksClient/Agent/MyAgent.java`:
+The bot logic you are going to implement is located in
+`src/main/java/com/github/INIT_SGGW/MonoTanksBot/Bot/MyBot.java`:
 
 ```java
-public class MyAgent extends Agent {
+public class MyBot extends Bot {
 
     private final String myId;
 
-    public MyAgent(LobbyData lobbyData) {
+    public MyBot(LobbyData lobbyData) {
         super(lobbyData);
         this.myId = lobbyData.playerId();
     }
@@ -31,14 +31,14 @@ public class MyAgent extends Agent {
     }
 
     @Override
-    public AgentResponse nextMove(GameState gameState) {
+    public BotResponse nextMove(GameState gameState) {
         double random = Math.random();
 
         if (random < 0.25) {
             if (Math.random() < 0.5) {
-                return AgentResponse.createMoveResponse(MoveDirection.FORWARD);
+                return BotResponse.createMoveResponse(MoveDirection.FORWARD);
             } else {
-                return AgentResponse.createMoveResponse(MoveDirection.BACKWARD);
+                return BotResponse.createMoveResponse(MoveDirection.BACKWARD);
             }
         } else if (random < 0.5) {
             double tankRandom = Math.random();
@@ -49,12 +49,12 @@ public class MyAgent extends Agent {
             RotationDirection turretRotation = turretRandom < 0.33 ? RotationDirection.LEFT
                     : turretRandom < 0.66 ? RotationDirection.RIGHT : null;
 
-            return AgentResponse.createRotationResponse(Optional.ofNullable(tankRotation),
+            return BotResponse.createRotationResponse(Optional.ofNullable(tankRotation),
                     Optional.ofNullable(turretRotation));
         } else if (random < 0.75) {
-            return AgentResponse.createShootResponse();
+            return BotResponse.createShootResponse();
         } else {
-            return AgentResponse.createPassResponse();
+            return BotResponse.createPassResponse();
         }
     }
 
@@ -73,13 +73,13 @@ public class MyAgent extends Agent {
 }
 ```
 
-The `MyAgent` class extends the abstract `Agent` class, which defines the agent's
-behavior. The constructor is called when the agent is created, and the
-`nextMove` method is called every game tick to determine the agent's next move.
+The `MyBot` class extends the abstract `Bot` class, which defines the bot's
+behavior. The constructor is called when the bot is created, and the
+`nextMove` method is called every game tick to determine the bot's next move.
 The `onGameEnd` method is called when the game ends to provide the final game
 state.
 
-`nextMove` returns an `AgentResponse` object, which can be one of the following:
+`nextMove` returns an `BotResponse` object, which can be one of the following:
 
 - `MoveResponse`: Move the tank forward or backward, where `MoveDirection` is an
   enum with the variants `FORWARD` and `BACKWARD`.
@@ -90,11 +90,11 @@ state.
   and `DROP_MINE`.
 - `PassResponse`: Do nothing for this turn.
 
-You can create these responses using the following static methods in `AgentResponse`:
+You can create these responses using the following static methods in `BotResponse`:
 
 You can modify the mentioned file and create more files in the
-`src/main/java/com/github/INIT_SGGW/MonoTanksClient/Agent` directory. Do not
-modify any other files, as this may prevent us from running your agent during
+`src/main/java/com/github/INIT_SGGW/MonoTanksBot/Bot` directory. Do not
+modify any other files, as this may prevent us from running your bot during
 the competition.
 
 ### Including Static Files
@@ -103,7 +103,7 @@ If you need to include static files that your program should access during
 testing or execution, place them in the `data` folder. This folder is copied
 into the Docker image and will be accessible to your application at runtime.
 For example, you could include configuration files, pre-trained models, or any
-other data your agent might need.
+other data your bot might need.
 
 ## Running the Client
 
@@ -123,14 +123,14 @@ Assuming the game server is running on `localhost:5000` (refer to the server
 repository's README for setup instructions), start the client by running:
 
 ```sh
-mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--nickname TEAM_NAME"
+mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksBot.App" -Dexec.args="--nickname TEAM_NAME"
 ```
 
 The `--nickname` argument is required and must be unique. For additional
 configuration options, run:
 
 ```sh
-mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--help"
+mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksBot.App" -Dexec.args="--help"
 ```
 
 ### 2. Running in a VS Code Development Container
@@ -154,7 +154,7 @@ when server is running on local machine, you need to use `host.docker.internal`
 as a host. So the command to run the client would be:
 
 ```sh
-mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksClient.App" -Dexec.args="--host host.docker.internal --nickname TEAM_NAME"
+mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksBot.App" -Dexec.args="--host host.docker.internal --nickname TEAM_NAME"
 ```
 
 ### 3. Running in a Docker Container (Manual Setup)
