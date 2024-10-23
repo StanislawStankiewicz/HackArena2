@@ -53,7 +53,12 @@ public record ServerSettings(
         /**
          * The name of the match. It can be null.
          */
-        String matchName
+        String matchName,
+
+        /**
+         * The version of the game running on the server.
+         */
+        String version
 
 ) {
 }
