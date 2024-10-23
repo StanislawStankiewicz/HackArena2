@@ -65,13 +65,22 @@ public class MyAgent extends Agent {
 
         // Print map as ascii
         System.out.println("Map:");
-        for (Tile[] row : gameState.map()) {
+        for (Tile[] row : gameState.map().tiles()) {
             for (Tile tile : row) {
                 List<TileEntity> entities = tile.getEntities();
                 String symbol = " ";
 
                 if (tile.isVisible()) {
                     symbol = ".";
+                }
+
+                if (tile.getZoneIndex().isPresent()) {
+                    int zoneIndex = tile.getZoneIndex().get();
+                    if (tile.isVisible()) {
+                        symbol = String.valueOf((char) zoneIndex);
+                    } else {
+                        symbol = String.valueOf((char) (zoneIndex + 32));
+                    }
                 }
 
                 for (TileEntity entity : entities) {
@@ -126,15 +135,6 @@ public class MyAgent extends Agent {
                     }
                 }
 
-                if (tile.getZoneIndex().isPresent()) {
-                    int zoneIndex = tile.getZoneIndex().get();
-                    if (tile.isVisible()) {
-                        symbol = String.valueOf((char) zoneIndex);
-                    } else {
-                        symbol = String.valueOf((char) (zoneIndex + 32));
-                    }
-                }
-
                 System.out.print(symbol + " ");
             }
             System.out.println();
@@ -142,7 +142,7 @@ public class MyAgent extends Agent {
 
         // Find my tank
         Tank myTank = null;
-        for (Tile[] row : gameState.map()) {
+        for (Tile[] row : gameState.map().tiles()) {
             for (Tile tile : row) {
                 for (TileEntity object : tile.getEntities()) {
                     if (object instanceof Tank tank && tank.getOwnerId().equals(myId)) {

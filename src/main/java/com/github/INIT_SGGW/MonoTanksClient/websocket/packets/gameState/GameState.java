@@ -3,7 +3,6 @@ package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
 
 /**
  * Represents the state of the game at a given tick.
@@ -27,11 +26,7 @@ public record GameState(
 
         /**
          * The map of the game state, represented as a 2D array of tiles.
+         * It has also information about zones.
          */
-        @JsonDeserialize(using = MapDeserializer.class) Tile[][] map,
-
-        /**
-         * The zones on the map.
-         */
-        Zone[] zones) {
+        @JsonDeserialize(using = MapDeserializer.class) Map map) {
 }

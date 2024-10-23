@@ -10,9 +10,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Bullet;
+import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.BulletType;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Item;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Laser;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.LaserDirection;
@@ -20,29 +22,40 @@ import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Til
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Tile.Tank;
 import com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState.tile.Turret;
 
-public class MapDeserializer extends JsonDeserializer<Tile[][]> {
+public class MapDeserializer extends JsonDeserializer<Map> {
     private ObjectMapper mapper;
 
     @Override
-    public Tile[][] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public Map deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         mapper = (ObjectMapper) p.getCodec();
+        mapper.registerModule(new Jdk8Module());
         JsonNode rootNode = mapper.readTree(p);
 
+        Zone[] zones = deserializeZones(rootNode);
+
         Boolean[][] visibility = deserializeVisibility(rootNode);
-        Integer[][] zones = deserializeZones(rootNode);
+        Integer[][] zoneIndexes = deserializeZoneIndexes(rootNode);
         int rows = visibility.length;
         int cols = visibility[0].length;
 
-        Tile[][] map = new Tile[rows][cols];
+        Tile[][] tiles = new Tile[rows][cols];
         JsonNode tilesNode = rootNode.get("tiles");
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                map[i][j] = deserializeTile(tilesNode.get(j).get(i), visibility[i][j], zones[i][j]);
+                tiles[i][j] = deserializeTile(tilesNode.get(j).get(i), visibility[i][j], zoneIndexes[i][j]);
             }
         }
 
-        return map;
+        return new Map(tiles, zones);
+    }
+
+    private Zone[] deserializeZones(JsonNode rootNode) {
+        Zone[] zones = new Zone[rootNode.get("zones").size()];
+        for (int i = 0; i < zones.length; i++) {
+            zones[i] = mapper.convertValue(rootNode.get("zones").get(i), Zone.class);
+        }
+        return zones;
     }
 
     private Boolean[][] deserializeVisibility(JsonNode rootNode) {
@@ -65,7 +78,7 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
         return visibility;
     }
 
-    private Integer[][] deserializeZones(JsonNode rootNode) {
+    private Integer[][] deserializeZoneIndexes(JsonNode rootNode) {
         JsonNode zonesNode = rootNode.get("zones");
         if (zonesNode == null || !zonesNode.isArray()) {
             return new Integer[0][0];
@@ -130,6 +143,9 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
         tank.setOwnerId(tankPayload.get("ownerId").asText());
         tank.setHealth(Optional.ofNullable(tankPayload.get("health")).map(JsonNode::asLong));
         tank.setDirection(mapper.convertValue(tankPayload.get("direction"), Direction.class));
+        Optional<ItemType> secondaryItem = Optional.ofNullable(tankPayload.get("secondaryItem"))
+                .map(item -> mapper.convertValue(item, ItemType.class));
+        tank.setSecondaryItem(secondaryItem);
         tank.setTurret(deserializeTurret(tankPayload.get("turret")));
         return tank;
     }
@@ -145,6 +161,10 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
     private Bullet deserializeBullet(JsonNode payloadNode) {
         Bullet bullet = new Bullet();
         bullet.setDirection(mapper.convertValue(payloadNode.get("payload").get("direction"), Direction.class));
+        bullet.setId(payloadNode.get("payload").get("id").asLong());
+        bullet.setSpeed(payloadNode.get("payload").get("speed").asDouble());
+        BulletType bulletType = mapper.convertValue(payloadNode.get("payload").get("type"), BulletType.class);
+        bullet.setType(bulletType);
         return bullet;
     }
 
@@ -164,6 +184,10 @@ public class MapDeserializer extends JsonDeserializer<Tile[][]> {
     private Mine deserializeMine(JsonNode payloadNode) {
         Mine mine = new Mine();
         mine.setId(payloadNode.get("payload").get("id").asLong());
+        Optional<Integer> explosionRemainingTicks = Optional
+                .ofNullable(payloadNode.get("payload").get("explosionRemainingTicks"))
+                .map(JsonNode::asInt);
+        mine.setExplosionRemainingTicks(explosionRemainingTicks);
         return mine;
     }
 }

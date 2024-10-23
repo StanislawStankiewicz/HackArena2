@@ -97,7 +97,7 @@ public class Tile {
          * This is only present for the player's own tank and when they have a secondary
          * item.
          */
-        private Optional<Integer> secondaryItem;
+        private Optional<ItemType> secondaryItem;
     }
 
     /**
@@ -185,8 +185,9 @@ public class Tile {
 
         /**
          * The number of remaining ticks before the mine explodes.
+         * If mine is not exploding, this value is not present.
          */
-        private Integer explosionRemainingTicks;
+        private Optional<Integer> explosionRemainingTicks;
     }
 
     /**

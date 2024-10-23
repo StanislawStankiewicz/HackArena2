@@ -1,9 +1,12 @@
 package com.github.INIT_SGGW.MonoTanksClient.websocket.packets.gameState;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -107,7 +110,7 @@ public class Zone {
             /**
              * The ID of the player who captured the zone.
              */
-            private String capturedById;
+            private Optional<String> capturedById;
         }
 
         /**
