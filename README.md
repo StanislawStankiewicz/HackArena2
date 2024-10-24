@@ -141,6 +141,8 @@ configuration options, run:
 mvn exec:java -Dexec.mainClass="com.github.INIT_SGGW.MonoTanksBot.App" -Dexec.args="--help"
 ```
 
+> **Note:** In case of java, the server must be started with flag `--host *` or `--host \*`, whatever works.
+
 ### 2. Running in a VS Code Development Container
 
 To run the client within a VS Code development container, ensure you have Docker
