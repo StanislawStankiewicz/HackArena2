@@ -74,7 +74,7 @@ public class MoveLogic {
     }
 
     public static BotResponse useFireBullet() {
-        return BotResponse.createAbilityUseResponse(AbilityType.FIRE_BULLET);
+        return BotResponse.createAbilityUseResponse(    AbilityType.FIRE_BULLET);
     }
 
     public static BotResponse useFireDoubleBullet() {

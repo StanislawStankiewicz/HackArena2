@@ -36,7 +36,7 @@ public class Board {
     private GameState currentGameState;
 
     public Board(GameState gameState, String myId) {
-
+        sites = new ArrayList<>();
         this.myId = myId;
         boardDistances = new BoardDistances(gameState.map().tiles()[0].length, gameState.map().tiles().length, gameState.map().zones().length, gameState);
         analyzeBoard(gameState);
@@ -47,7 +47,8 @@ public class Board {
     }
 
     public void update(GameState gameState){
-        
+        analyzeBoard(gameState);
+        bullets.forEach((bullet) -> System.out.println(isBulletOnCollisionCourse(bullet, ourTank)));
     }
 
     // adds objects to corresponding lists
@@ -145,8 +146,8 @@ public class Board {
         items = new ArrayList<>();
     }
 
-    public int evaluateBoard(GameState gameState) {
-        int score = 0;
+    public float evaluateBoard(GameState gameState) {
+        float score = 0;
 
         //get all data needed for evaluation
         score += evaluateBullets(gameState.map().tiles().length);

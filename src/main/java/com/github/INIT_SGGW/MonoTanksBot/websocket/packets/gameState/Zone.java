@@ -22,32 +22,32 @@ public class Zone {
     /**
      * The index of the zone.
      */
-    private int index;
+    public int index;
 
     /**
      * The x-coordinate of the left side of the zone.
      */
-    private long x;
+    public long x;
 
     /**
      * The y-coordinate of the top side of the zone.
      */
-    private long y;
+    public long y;
 
     /**
      * The width of the zone.
      */
-    private long width;
+    public long width;
 
     /**
      * The height of the zone.
      */
-    private long height;
+    public long height;
 
     /**
      * The status of the zone.
      */
-    private ZoneStatus status;
+    public ZoneStatus status;
 
     /**
      * Abstract base class for different types of zone statuses.
@@ -81,12 +81,12 @@ public class Zone {
             /**
              * The remaining ticks for the capture process.
              */
-            private long remainingTicks;
+            public long remainingTicks;
 
             /**
              * The ID of the player capturing the zone.
              */
-            private String playerId;
+            public String playerId;
         }
 
         /**
@@ -99,7 +99,7 @@ public class Zone {
             /**
              * The ID of the player who captured the zone.
              */
-            private String playerId;
+            public String playerId;
         }
 
         /**
@@ -112,7 +112,7 @@ public class Zone {
             /**
              * The ID of the player who captured the zone.
              */
-            private Optional<String> capturedById;
+            public Optional<String> capturedById;
         }
 
         /**
@@ -125,17 +125,17 @@ public class Zone {
             /**
              * The remaining ticks for the retake process.
              */
-            private long remainingTicks;
+            public long remainingTicks;
 
             /**
              * The ID of the player who captured the zone.
              */
-            private String capturedById;
+            public String capturedById;
 
             /**
              * The ID of the player retaking the zone.
              */
-            private String retakenById;
+            public String retakenById;
         }
     }
 }

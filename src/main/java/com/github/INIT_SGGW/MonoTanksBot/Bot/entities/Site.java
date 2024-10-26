@@ -10,12 +10,12 @@ public class Site {
     public float y;
     public int tileCount;
 
-    public Site(int index){
+    public Site(int index, Owner owner){
         this.index=index;
         x = 0;
         y = 0;
         tileCount =0;
-        owner = Owner.NONE;
+        this.owner = owner;
     }
 
     public void addToX(int n){
