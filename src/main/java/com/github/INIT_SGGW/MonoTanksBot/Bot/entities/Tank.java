@@ -1,6 +1,7 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot.entities;
 
 import com.github.INIT_SGGW.MonoTanksBot.Bot.Direction;
+import com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,4 +29,49 @@ public class Tank {
         this.isEnemy = isEnemy;
         this.bulletsAmount = bulletsAmount;
     }
+
+    public int[] getXYInFront() {
+        int x = this.x;
+        int y = this.y;
+
+        switch (drivingDirection) {
+            case Direction.UP -> {
+                --x;
+            }
+            case Direction.DOWN -> {
+                ++x;
+            }
+            case Direction.LEFT -> {
+                --y;
+            }
+            case Direction.RIGHT -> {
+                ++y;
+            }
+        }
+
+        return new int[]{x, y};
+    }
+
+    public int[] getXYBehind() {
+        int x = this.x;
+        int y = this.y;
+
+        switch (drivingDirection) {
+            case Direction.UP -> {
+                ++x;
+            }
+            case Direction.DOWN -> {
+                --x;
+            }
+            case Direction.LEFT -> {
+                ++y;
+            }
+            case Direction.RIGHT -> {
+                --y;
+            }
+        }
+
+        return new int[]{x, y};
+    }
+
 }
