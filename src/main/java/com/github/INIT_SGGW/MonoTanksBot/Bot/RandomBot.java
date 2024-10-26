@@ -1,19 +1,17 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Tank;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.*;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.Warning;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameEnd.GameEndPlayer;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
-import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
-import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile.*;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.lobbyData.LobbyData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Optional;
 
 public class RandomBot extends Bot {
@@ -54,7 +52,7 @@ public class RandomBot extends Bot {
 //        printMap(gameState, myId);
 
         // Find my tank
-        Tank myTank = null;
+        com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Tank myTank = null;
         for (Tile[] row : gameState.map().tiles()) {
             for (Tile tile : row) {
                 for (TileEntity object : tile.getEntities()) {

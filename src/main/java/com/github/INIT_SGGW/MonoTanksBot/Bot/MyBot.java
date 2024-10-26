@@ -2,6 +2,7 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
 import java.util.Optional;
 
+import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +12,6 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.Warning;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.lobbyData.LobbyData;
-
-import javax.swing.text.Utilities;
 
 import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveLogic.*;
 
@@ -34,8 +33,15 @@ public class MyBot extends Bot {
 
     @Override
     public BotResponse nextMove(GameState gameState) {
-        System.out.println("-----------------------------------");
-        Utility.printMap(gameState, id);
+//        System.out.println("-----------------------------------");
+//        Utility.printMap(gameState, id);
+        for (Tile[] row : gameState.map().tiles()) {
+            for (Tile tile : row) {
+                if (tile.getEntities().size() > 0) {
+                    System.out.println(tile.getEntities());
+                }
+            }
+        }
         return moveForward();
 //        return getBestMove(gameState);
     }

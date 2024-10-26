@@ -1,10 +1,9 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Site;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
-import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.Map;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Board {
@@ -17,12 +16,12 @@ public class Board {
 
     public int evaluateBoard(GameState gameState) {
         int score = 0;
+
+        //get all data needed for evaluation
         for (Tile[] row : gameState.map().tiles()) {
             for (Tile tile : row) {
                 // get all entities
                 List<Tile.TileEntity> entities = tile.getEntities();
-
-
             }
         }
         return score;
@@ -32,25 +31,30 @@ public class Board {
         int x = 0, y = 0;
         for (Tile[] row : gameState.map().tiles()) {
             for (Tile tile : row) {
-                // get all entities
-                List<Tile.TileEntity> entities = tile.getEntities();
-
                 //calculate the position of sites
                 if (tile.getZoneIndex().isPresent()) {
                     int zoneIndex = tile.getZoneIndex().get();
-
+                    if (sites.size() <= zoneIndex) {
+                        sites.add(new Site(zoneIndex));
+                    }
+                    Site site = sites.get(zoneIndex);
+                    site.addTile(x, y);
                 }
 
                 y++;
             }
             x++;
         }
+        sites.forEach(Site::averagePosition);
     }
+
+
     
     private int incomingMissilesDistance(GameState gameState, String ownerId) {
         Tile[][] tiles = gameState.map().tiles();
 
         int[][] ownerPosition = findOwnerPosition(tiles, ownerId);
+        return 0;
     }
 
     private int[][] findOwnerPosition(Tile[][] tiles, String ownerId) {
