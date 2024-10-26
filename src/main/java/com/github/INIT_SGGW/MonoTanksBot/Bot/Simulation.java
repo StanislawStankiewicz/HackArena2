@@ -1,7 +1,9 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Tank;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.BotResponse;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
+import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
 import java.util.ArrayList;
@@ -24,43 +26,12 @@ public class Simulation {
             MoveLogic::pass
     );
 
-    static enum Direction {
-        UP, DOWN, LEFT, RIGHT;
-
-        public Direction turnLeft() {
-            return switch (this) {
-                case UP -> LEFT;
-                case LEFT -> DOWN;
-                case DOWN -> RIGHT;
-                case RIGHT -> UP;
-            };
-        }
-
-        public Direction turnRight() {
-            return switch (this) {
-                case UP -> RIGHT;
-                case RIGHT -> DOWN;
-                case DOWN -> LEFT;
-                case LEFT -> UP;
-            };
-        }
-
-        public Direction turnAround() {
-            return switch (this) {
-                case UP -> DOWN;
-                case DOWN -> UP;
-                case LEFT -> RIGHT;
-                case RIGHT -> LEFT;
-            };
-        }
-    }
-
-    public static Object getFeasableMoves(GameState gameState, Tank tank) {
+    public static List<Callable<BotResponse>> getFeasableMoves(GameState gameState, Tank tank) {
         List<Callable<BotResponse>> result = new ArrayList<>();
 
-        int[] tankPosition = tank.getPosition();
-        Direction direction = tank.getDirection();
-        Direction turretDirection = tank.getTurretDirection();
+        int[] tankPosition = {tank.getX(), tank.getY()};
+        Direction direction = tank.getDrivingDirection();
+        Direction turretDirection = tank.getShootingDirection();
 
         if (canMoveForward(gameState, tankPosition, direction)) {
             result.add(MoveLogic::moveForward);
@@ -80,23 +51,15 @@ public class Simulation {
         if (canRotateTurretRight(gameState, tankPosition, turretDirection)) {
             result.add(MoveLogic::rotateTurretRight);
         }
-        if (canUseFireBullet(gameState, tankPosition)) {
+        if (canShoot(gameState, tank)) {
             result.add(MoveLogic::useFireBullet);
         }
-        if (canUseFireDoubleBullet(gameState, tankPosition)) {
-            result.add(MoveLogic::useFireDoubleBullet);
+        switch (tank.getSpecialItem()) {
+            case ItemType.MINE -> result.add(MoveLogic::dropMine);
+            case ItemType.DOUBLE_BULLET -> result.add(MoveLogic::useFireBullet);
+            case ItemType.RADAR -> result.add(MoveLogic::useFireDoubleBullet);
+            case ItemType.LASER -> result.add(MoveLogic::useLaser);
         }
-        if (canUseLaser(gameState, tankPosition)) {
-            result.add(MoveLogic::useLaser);
-        }
-        if (canUseRadar(gameState, tankPosition)) {
-            result.add(MoveLogic::useRadar);
-        }
-//        for (int i = 0; i < tiles.length; ++i) {
-//            for (int j = 0; j < tiles.length; ++j) {
-//                tiles[i][j].
-//            }
-//        }
         return result;
     }
 
@@ -134,17 +97,16 @@ public class Simulation {
             return false;
         }
         return tiles[x][y].getEntities().stream()
-                .noneMatch(entity -> entity instanceof Tile.Wall);
+                .noneMatch(entity ->
+                        entity instanceof Tile.Wall || entity instanceof Tile.Tank || entity instanceof Tile.Laser
+                );
     }
 
-    private static boolean canUseFireBullet(GameState gameState, int[] tankPosition) {
-        int x = tankPosition[0];
-        int y = tankPosition[1];
-        Tile[][] tiles = gameState.map().tiles();
-
-        return tiles[x][y].getEntities().stream()
-                .filter(entity -> entity instanceof Tile.Wall).findAny();
+    private static boolean canShoot(GameState gameState, Tank tank) {
+        if (tank.getBulletsAmount() == 0) {
+            return false;
+        }
+        int[] tankPosition = {tank.getX(), tank.getY()};
+        return canMoveForward(gameState, tankPosition, tank.getShootingDirection());
     }
-
-
 }

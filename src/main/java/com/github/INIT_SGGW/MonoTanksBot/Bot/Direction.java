@@ -3,6 +3,15 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot;
 public enum Direction {
     UP, DOWN, LEFT, RIGHT;
 
+    public static Direction from(com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction direction) {
+        return switch (direction) {
+            case UP -> UP;
+            case DOWN -> DOWN;
+            case LEFT -> LEFT;
+            case RIGHT -> RIGHT;
+        };
+    }
+
     public Direction turnLeft() {
         return switch (this) {
             case UP -> LEFT;

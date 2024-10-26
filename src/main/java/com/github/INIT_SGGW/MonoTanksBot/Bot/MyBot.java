@@ -35,13 +35,7 @@ public class MyBot extends Bot {
     public BotResponse nextMove(GameState gameState) {
 //        System.out.println("-----------------------------------");
 //        Utility.printMap(gameState, id);
-        for (Tile[] row : gameState.map().tiles()) {
-            for (Tile tile : row) {
-                if (tile.getEntities().size() > 0) {
-                    System.out.println(tile.getEntities());
-                }
-            }
-        }
+        Board board = new Board(gameState, id);
         return moveForward();
 //        return getBestMove(gameState);
     }
