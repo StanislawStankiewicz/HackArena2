@@ -13,10 +13,10 @@ public class BoardDistances {
         //avoid walls
 
         //initialize the distances to infinity
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                for (int k = 0; k < numberOfSites; k++) {
-                    distancesToSites[i][j][k] = Float.POSITIVE_INFINITY;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (int i = 0; i < numberOfSites; i++) {
+                    distancesToSites[x][y][i] = Float.POSITIVE_INFINITY;
                 }
             }
         }
@@ -49,7 +49,6 @@ public class BoardDistances {
         if ((gameState.map().tiles()[x][y].getZoneIndex().isPresent() && gameState.map().tiles()[x][y].getZoneIndex().get() == index)
                 ||(gameState.map().tiles()[x][y].getEntities().stream().anyMatch(entity -> entity instanceof Tile.Wall))) {
             return; //if it is a wall, return
-
         }
         //check if the distance is smaller than the current distance
         if (distancesToSites[x][y][index] > distance) {
@@ -60,7 +59,6 @@ public class BoardDistances {
             calculateDistances(x, y-1, index, gameState, distance+1);
             calculateDistances(x, y+1, index, gameState, distance+1);
             calculateDistances(x+1, y, index, gameState, distance+1);
-
         }
 
     }

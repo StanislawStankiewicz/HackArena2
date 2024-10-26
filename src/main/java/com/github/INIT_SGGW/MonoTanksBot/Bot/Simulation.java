@@ -12,7 +12,7 @@ import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType.*;
 
 public class Simulation {
 
-    public static List<MoveType> getFeasableMoves(GameState gameState, Tank tank) {
+    public static List<MoveType> getFeasibleMoves(GameState gameState, Tank tank) {
         List<MoveType> result = new ArrayList<>();
 
         int[] tankPosition = {tank.getX(), tank.getY()};

@@ -1,5 +1,6 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.util;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.BoardDistances;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;
@@ -7,8 +8,22 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
 import java.util.List;
 
-public class Utility {
-    public static void printMap(GameState gameState, String myId) {
+public class BoardPrinter {
+
+    public static void printBoardDistances(GameState gameState, BoardDistances boardDistances) {
+        for (int x = 0; x < gameState.map().tiles()[0].length; x++) {
+            for (int y = 0; y < gameState.map().tiles().length; y++) {
+                int distance = (int) boardDistances.getDistance(x,y)[1];
+                if (distance == 2147483647) {
+                    System.out.printf("%2s ", "X");
+                } else {
+                    System.out.printf("%2d ", distance);
+                }
+            }
+        }
+    }
+
+    public static void printBoard(GameState gameState, String myId) {
         // Print map as ascii
         System.out.println("Map:");
         for (Tile[] row : gameState.map().tiles()) {

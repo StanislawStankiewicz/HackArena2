@@ -12,6 +12,23 @@ public enum Direction {
         };
     }
 
+    public static com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction to(Direction direction) {
+        return switch (direction) {
+            case UP -> com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction.UP;
+            case DOWN -> com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction.DOWN;
+            case LEFT -> com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction.LEFT;
+            case RIGHT -> com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction.RIGHT;
+        };
+    }
+
+    public static Direction turn(Direction facingDirection, Direction turningDirection) {
+        return switch (turningDirection) {
+            case LEFT -> facingDirection.turnLeft();
+            case RIGHT -> facingDirection.turnRight();
+            default -> facingDirection;
+        };
+    }
+
     public Direction turnLeft() {
         return switch (this) {
             case UP -> LEFT;

@@ -2,7 +2,6 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
 import java.util.Optional;
 
-import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,12 +13,13 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.lobbyData.LobbyData;
 
 import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveLogic.*;
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.Simulation.getFeasibleMoves;
 
 public class MyBot extends Bot {
     private static final Logger logger = LoggerFactory.getLogger(MyBot.class);
 
     private final String id;
-    private Board board;
+    private OldBoard board;
 
     public MyBot(LobbyData lobbyData) {
         super(lobbyData);
@@ -37,10 +37,21 @@ public class MyBot extends Bot {
         if (board != null){
             board.update(gameState);
         } else {
-            board = new Board(gameState, id);
+            board = new OldBoard(gameState, id);
         }
-        MoveType move = MoveType.PASS;
-        BotResponse finalMove = getMoveOrDefault(move);
+        float bestScore = Float.MIN_VALUE;
+        MoveType bestMove = MoveType.PASS;
+        float score;
+        for (MoveType moveType : getFeasibleMoves(gameState, board.getOurTank())) {
+            OldBoard newBoard = board.deepCopy();
+            newBoard.applyMoveToTank(id, moveType);
+            score = newBoard.evaluateBoard();
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = moveType;
+            }
+        }
+        BotResponse finalMove = getMoveOrDefault(bestMove);
         return finalMove;
     }
 
