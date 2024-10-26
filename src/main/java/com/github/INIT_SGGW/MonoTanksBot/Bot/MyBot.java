@@ -34,14 +34,22 @@ public class MyBot extends Bot {
 
     @Override
     public BotResponse nextMove(GameState gameState) {
-//        System.out.println("-----------------------------------");
-//        Utility.printMap(gameState, id);
         if (board != null){
             board.update(gameState);
-        }else {
+        } else {
             board = new Board(gameState, id);
-        }return moveForward();
-//        return getBestMove(gameState);
+        }
+        MoveType move = MoveType.PASS;
+        BotResponse finalMove = getMoveOrDefault(move);
+        return finalMove;
+    }
+
+    private BotResponse getMoveOrDefault(MoveType move) {
+        try {
+            return moveMap.get(move).call();
+        } catch (Exception e) {
+            return BotResponse.createPassResponse();
+        }
     }
 
     @Override

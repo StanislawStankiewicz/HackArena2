@@ -1,30 +1,34 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.AbilityType;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.BotResponse;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.MoveDirection;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.RotationDirection;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public class MoveLogic {
 
-    public static List<Callable<BotResponse>> moves = List.of(
-            MoveLogic::moveForward,
-            MoveLogic::moveBackward,
-            MoveLogic::rotateTankLeft,
-            MoveLogic::rotateTankRight,
-            MoveLogic::rotateTurretLeft,
-            MoveLogic::rotateTurretRight,
-            MoveLogic::useFireBullet,
-            MoveLogic::useFireDoubleBullet,
-            MoveLogic::useLaser,
-            MoveLogic::useRadar,
-            MoveLogic::dropMine,
-            MoveLogic::pass
-    );
+    public static final Map<MoveType, Callable<BotResponse>> moveMap = new HashMap<>();
+
+    static {
+        moveMap.put(MoveType.MOVE_FORWARD, MoveLogic::moveForward);
+        moveMap.put(MoveType.MOVE_BACKWARD, MoveLogic::moveBackward);
+        moveMap.put(MoveType.ROTATE_TANK_LEFT, MoveLogic::rotateTankLeft);
+        moveMap.put(MoveType.ROTATE_TANK_RIGHT, MoveLogic::rotateTankRight);
+        moveMap.put(MoveType.ROTATE_TURRET_LEFT, MoveLogic::rotateTurretLeft);
+        moveMap.put(MoveType.ROTATE_TURRET_RIGHT, MoveLogic::rotateTurretRight);
+        moveMap.put(MoveType.USE_FIRE_BULLET, MoveLogic::useFireBullet);
+        moveMap.put(MoveType.USE_FIRE_DOUBLE_BULLET, MoveLogic::useFireDoubleBullet);
+        moveMap.put(MoveType.USE_LASER, MoveLogic::useLaser);
+        moveMap.put(MoveType.USE_RADAR, MoveLogic::useRadar);
+        moveMap.put(MoveType.DROP_MINE, MoveLogic::dropMine);
+        moveMap.put(MoveType.PASS, MoveLogic::pass);
+    }
 
     public static BotResponse moveForward() {
         return BotResponse.createMoveResponse(MoveDirection.FORWARD);

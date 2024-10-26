@@ -1,64 +1,50 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
 import com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Tank;
-import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.BotResponse;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType.*;
 
 public class Simulation {
-    public static List<Callable<BotResponse>> moves = List.of(
-            MoveLogic::moveForward,
-            MoveLogic::moveBackward,
-            MoveLogic::rotateTankLeft,
-            MoveLogic::rotateTankRight,
-            MoveLogic::rotateTurretLeft,
-            MoveLogic::rotateTurretRight,
-            MoveLogic::useFireBullet,
-            MoveLogic::useFireDoubleBullet,
-            MoveLogic::useLaser,
-            MoveLogic::useRadar,
-            MoveLogic::dropMine,
-            MoveLogic::pass
-    );
 
-    public static List<Callable<BotResponse>> getFeasableMoves(GameState gameState, Tank tank) {
-        List<Callable<BotResponse>> result = new ArrayList<>();
+    public static List<MoveType> getFeasableMoves(GameState gameState, Tank tank) {
+        List<MoveType> result = new ArrayList<>();
 
         int[] tankPosition = {tank.getX(), tank.getY()};
         Direction direction = tank.getDrivingDirection();
         Direction turretDirection = tank.getShootingDirection();
 
         if (canMoveForward(gameState, tankPosition, direction)) {
-            result.add(MoveLogic::moveForward);
+            result.add(MOVE_FORWARD);
         }
         if (canMoveBackward(gameState, tankPosition, direction)) {
-            result.add(MoveLogic::moveBackward);
+            result.add(MOVE_BACKWARD);
         }
         if (canRotateTankLeft(gameState, tankPosition, direction)) {
-            result.add(MoveLogic::rotateTankLeft);
+            result.add(ROTATE_TANK_LEFT);
         }
         if (canRotateTankRight(gameState, tankPosition, direction)) {
-            result.add(MoveLogic::rotateTankRight);
+            result.add(ROTATE_TANK_RIGHT);
         }
         if (canRotateTurretLeft(gameState, tankPosition, turretDirection)) {
-            result.add(MoveLogic::rotateTurretLeft);
+            result.add(ROTATE_TURRET_LEFT);
         }
         if (canRotateTurretRight(gameState, tankPosition, turretDirection)) {
-            result.add(MoveLogic::rotateTurretRight);
+            result.add(ROTATE_TURRET_RIGHT);
         }
-        if (canShoot(gameState, tank)) {
-            result.add(MoveLogic::useFireBullet);
+        if (canUseFireBullet(gameState, tank)) {
+            result.add(USE_FIRE_BULLET);
         }
         switch (tank.getSpecialItem()) {
-            case ItemType.MINE -> result.add(MoveLogic::dropMine);
-            case ItemType.DOUBLE_BULLET -> result.add(MoveLogic::useFireBullet);
-            case ItemType.RADAR -> result.add(MoveLogic::useFireDoubleBullet);
-            case ItemType.LASER -> result.add(MoveLogic::useLaser);
+            case ItemType.MINE -> result.add(DROP_MINE);
+            case ItemType.DOUBLE_BULLET -> result.add(USE_FIRE_DOUBLE_BULLET);
+            case ItemType.RADAR -> result.add(USE_RADAR);
+            case ItemType.LASER -> result.add(USE_LASER);
         }
         return result;
     }
@@ -87,8 +73,6 @@ public class Simulation {
         int x = tankPosition[0];
         int y = tankPosition[1];
         Tile[][] tiles = gameState.map().tiles();
-        // check if the next unit in direction is tile and if tile is not a wall
-        // modify x and y according to direction do that only for now
         x = direction == Direction.UP ? x - 1 : x;
         x = direction == Direction.DOWN ? x + 1 : x;
         y = direction == Direction.LEFT ? y - 1 : y;
@@ -102,7 +86,7 @@ public class Simulation {
                 );
     }
 
-    private static boolean canShoot(GameState gameState, Tank tank) {
+    private static boolean canUseFireBullet(GameState gameState, Tank tank) {
         if (tank.getBulletsAmount() == 0) {
             return false;
         }

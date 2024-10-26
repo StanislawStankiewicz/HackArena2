@@ -1,0 +1,16 @@
+package com.github.INIT_SGGW.MonoTanksBot.Bot;
+
+public enum MoveType {
+    MOVE_FORWARD,
+    MOVE_BACKWARD,
+    ROTATE_TANK_LEFT,
+    ROTATE_TANK_RIGHT,
+    ROTATE_TURRET_LEFT,
+    ROTATE_TURRET_RIGHT,
+    USE_FIRE_BULLET,
+    USE_FIRE_DOUBLE_BULLET,
+    USE_LASER,
+    USE_RADAR,
+    DROP_MINE,
+    PASS
+}
