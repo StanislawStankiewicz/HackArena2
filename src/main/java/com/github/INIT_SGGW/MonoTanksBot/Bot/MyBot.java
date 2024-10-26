@@ -19,6 +19,7 @@ public class MyBot extends Bot {
     private static final Logger logger = LoggerFactory.getLogger(MyBot.class);
 
     private final String id;
+    private Board board;
 
     public MyBot(LobbyData lobbyData) {
         super(lobbyData);
@@ -35,8 +36,11 @@ public class MyBot extends Bot {
     public BotResponse nextMove(GameState gameState) {
 //        System.out.println("-----------------------------------");
 //        Utility.printMap(gameState, id);
-        Board board = new Board(gameState, id);
-        return moveForward();
+        if (board != null){
+            board.update(gameState);
+        }else {
+            board = new Board(gameState, id);
+        }return moveForward();
 //        return getBestMove(gameState);
     }
 

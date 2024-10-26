@@ -9,20 +9,69 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.INIT_SGGW.MonoTanksBot.Bot.Simulation.getFeasableMoves;
-
 public class Board {
     private List<Site> sites;
+    //array of distances to all sites (get the size from GameState)
+    private BoardDistances boardDistances;
+
     private final List<Tank> tanks = new ArrayList<>();
     private String myId;
 
+    private final List<int[]> walls = new ArrayList<>();
+    private final List<int[]> mines = new ArrayList<>();
+    private final List<int[]> bullets = new ArrayList<>();
+
+
 
     public Board(GameState gameState, String myId) {
-//        calculateSitePositions(gameState);
+
         this.myId = myId;
-        createTanks(gameState);
+        boardDistances = new BoardDistances(gameState.map().tiles()[0].length, gameState.map().tiles().length, gameState.map().zones().length, gameState);
+        analyzeBoard(gameState);
         tanks.forEach(System.out::println);
 //        updateBoard(gameState);
+        //print board distances in a 2D array
+        for (int i = 0; i < gameState.map().tiles()[0].length; i++) {
+            for (int j = 0; j < gameState.map().tiles().length; j++) {
+                int distance = (int) boardDistances.getDistance(i,j)[1];
+                if (distance == 2147483647) {
+                    System.out.printf("%2s ", "X");
+                } else {
+                    System.out.printf("%2d ", distance);
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    public void update(GameState gameState){
+        
+    }
+
+    private void analyzeBoard(GameState gameState) {
+        Tile[][] tiles = gameState.map().tiles();
+        Tile tile;
+        for (int x = 0; x < gameState.map().tiles().length; x++) {
+            for (int y = 0; y < gameState.map().tiles()[x].length; y++) {
+                tile = tiles[x][y];
+                if (tile.getEntities().isEmpty()) {
+                    continue;
+                }
+                for (Tile.TileEntity entity : tile.getEntities()) {
+                    if (entity instanceof Tile.Wall wall) {
+                        walls.add(new int[]{x, y});
+                    }
+                    if (entity instanceof Tile.Mine mine) {
+                        mines.add(new int[]{x, y});
+                    }
+                    if (entity instanceof Tile.Bullet bullet) {
+                        bullets.add(new int[]{x, y});
+                    }
+                }
+
+            }
+        }
+
     }
 
     record TankInfo(int x, int y, Tile.Tank tank) {
@@ -85,36 +134,5 @@ public class Board {
             }
         }
         return score;
-    }
-
-    private void calculateSitePositions(GameState gameState){
-        int x = 0, y = 0;
-        for (Tile[] row : gameState.map().tiles()) {
-            for (Tile tile : row) {
-                //calculate the position of sites
-                if (tile.getZoneIndex().isPresent()) {
-                    int zoneIndex = tile.getZoneIndex().get();
-                    if (sites.size() <= zoneIndex) {
-                        sites.add(new Site(zoneIndex));
-                    }
-                    Site site = sites.get(zoneIndex);
-                    site.addTile(x, y);
-                }
-
-                y++;
-            }
-            x++;
-        }
-        sites.forEach(Site::averagePosition);
-    }
-
-    private void updateBoard(GameState gameState) {
-        //update the board with the current state of the game
-        for (Tile[] row : gameState.map().tiles()) {
-            for (Tile tile : row) {
-                // get all entities
-                List<Tile.TileEntity> entities = tile.getEntities();
-            }
-        }
     }
 }
