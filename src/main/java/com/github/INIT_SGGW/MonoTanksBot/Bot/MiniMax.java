@@ -19,7 +19,11 @@ public class MiniMax {
         for (Action action : actions) {
             Board newBoard = board.copy();
             newBoard.perform(action, tank);
+//            int score = BoardEvaluator.evaluateBoard(newBoard);
             int score = minimax(newBoard, depth - 1);
+            if (action == Action.MOVE_FORWARD) {
+                score += 5;
+            }
             actionScores.add(Map.of(action, score));
             if (score > bestScore) {
                 bestScore = score;

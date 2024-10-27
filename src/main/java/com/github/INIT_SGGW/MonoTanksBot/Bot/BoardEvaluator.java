@@ -14,23 +14,23 @@ public class BoardEvaluator {
         //evaluate zones
         score += evaluateZones(board, ourTank);
 
-//        //evaluate bullets
-//        for (TankWrapper tank : board.getTanks()) {
-//            int bulletCount = board.countBulletsFlyingAt(tank);
-//            if (tank.getId().equals(MyBot.id)) {
-//                score -= DODGE_BULLET * bulletCount; // us getting shot at
-//            } else {
-//                score += SHOOT_ENEMY * bulletCount; // other people getting shot at
-//            }
-//        }
-//
-//        //evaluate looking at enemy
-//        DirectionWrapper direction = ourTank.getTurretDirection();
-//        DirectionWrapper closestEnemyDirection = directionToClosestEnemy(ourTank, board);
-//        if (closestEnemyDirection != null) {
-//            int rotations = countRotationsToFace(direction, closestEnemyDirection);
-//            score -= ROTATE_TURRET_TOWARDS_ENEMY * rotations;
-//        }
+        //evaluate bullets
+        for (TankWrapper tank : board.getTanks()) {
+            int bulletCount = board.countBulletsFlyingAt(tank);
+            if (tank.getId().equals(MyBot.id)) {
+                score -= DODGE_BULLET * bulletCount; // us getting shot at
+            } else {
+                score += SHOOT_ENEMY * bulletCount; // other people getting shot at
+            }
+        }
+
+        //evaluate looking at enemy
+        DirectionWrapper direction = ourTank.getTurretDirection();
+        DirectionWrapper closestEnemyDirection = directionToClosestEnemy(ourTank, board);
+        if (closestEnemyDirection != null) {
+            int rotations = countRotationsToFace(direction, closestEnemyDirection);
+            score -= ROTATE_TURRET_TOWARDS_ENEMY * rotations;
+        }
 
         return score;
     }
@@ -43,6 +43,16 @@ public class BoardEvaluator {
         }
         int dx = closestEnemy.getX() - tank.getX();
         int dy = closestEnemy.getY() - tank.getY();
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return dx > 0 ? DirectionWrapper.RIGHT : DirectionWrapper.LEFT;
+        } else {
+            return dy > 0 ? DirectionWrapper.DOWN : DirectionWrapper.UP;
+        }
+    }
+
+    public static DirectionWrapper directionToZone(TankWrapper tank, ZoneWrapper zone) {
+        int dx = zone.getX() - tank.getX();
+        int dy = zone.getY() - tank.getY();
         if (Math.abs(dx) > Math.abs(dy)) {
             return dx > 0 ? DirectionWrapper.RIGHT : DirectionWrapper.LEFT;
         } else {
@@ -73,11 +83,18 @@ public class BoardEvaluator {
             if (zone.owner() == ZoneWrapper.OwnedBy.US) {
                 score += GO_TOWARDS_OUR_ZONE * distance;
             } else {
+                //add points for facing the zone
+                DirectionWrapper direction = tank.getTurretDirection();
+                DirectionWrapper closestZoneDirection = directionToZone(tank, zone);
+                int rotations = countRotationsToFace(direction, closestZoneDirection);
+                //print info about rotation
+                System.out.println("tank direction: " + direction + " closest zone direction: " + closestZoneDirection + " rotations: " + rotations);
+                score += ROTATE_BODY_TOWARDS_ZONE * rotations;
+
                 switch (zone.owner()) {
                     case ENEMY -> score -= GO_TOWARDS_ENEMY_ZONE * distance;
                     case NOONE -> score -= GO_TOWARDS_EMPTY_ZONE * distance;
                 }
-                BoardPrinter.printBoardDistances(24,24,board.getDistanceTable().distances,zone);
                 return score;
             }
 

@@ -45,6 +45,7 @@ public enum Action {
             case LEFT -> gameState.moveEntity(tank, x, y - 1);
             case RIGHT -> gameState.moveEntity(tank, x, y + 1);
         }
+        ActionFinder.mapTimeSinceLastAction.put(MOVE_FORWARD, 0);
     }
 
     private void moveBackward(GameStateWrapper gameState, TankWrapper tank) {
@@ -56,32 +57,43 @@ public enum Action {
             case LEFT -> gameState.moveEntity(tank, x, y + 1);
             case RIGHT -> gameState.moveEntity(tank, x, y - 1);
         }
+        ActionFinder.mapTimeSinceLastAction.put(MOVE_BACKWARD, 0);
     }
 
     private void rotateTankLeft(GameStateWrapper gameState, TankWrapper tank) {
+        //retate the tank on the tile in gamestate
+        gameState.rotateEntity(tank, RotationDirection.LEFT);
         tank.rotateBody(RotationDirection.LEFT);
+        ActionFinder.mapTimeSinceLastAction.put(ROTATE_TANK_LEFT, 0);
     }
 
     private void rotateTankRight(GameStateWrapper gameState, TankWrapper tank) {
+        //retate the tank on the tile in gamestate
+        gameState.rotateEntity(tank, RotationDirection.RIGHT);
         tank.rotateBody(RotationDirection.RIGHT);
+        ActionFinder.mapTimeSinceLastAction.put(ROTATE_TANK_RIGHT, 0);
     }
 
     private void rotateTurretLeft(GameStateWrapper gameState, TankWrapper tank) {
         tank.rotateTurret(RotationDirection.LEFT);
+        ActionFinder.mapTimeSinceLastAction.put(ROTATE_TURRET_LEFT, 0);
     }
 
     private void rotateTurretRight(GameStateWrapper gameState, TankWrapper tank) {
         tank.rotateTurret(RotationDirection.RIGHT);
+        ActionFinder.mapTimeSinceLastAction.put(ROTATE_TURRET_RIGHT, 0);
     }
 
     private void useFireBullet(GameStateWrapper gameState, TankWrapper tank) {
         assert tank.getBulletsCount() > 0;
 
         gameState.createBullet(tank.shoot(Tile.BulletType.BASIC));
+        ActionFinder.mapTimeSinceLastAction.put(USE_FIRE_BULLET, 0);
     }
 
     private void useFireDoubleBullet(GameStateWrapper gameState, TankWrapper tank) {
         gameState.createBullet(tank.shoot(Tile.BulletType.DOUBLE));
+        ActionFinder.mapTimeSinceLastAction.put(USE_FIRE_DOUBLE_BULLET, 0);
     }
 
     private void useLaser(GameStateWrapper gameState, TankWrapper tank) {
@@ -94,6 +106,7 @@ public enum Action {
 
     private void dropMine(GameStateWrapper gameState, TankWrapper tank) {
         gameState.createMine(tank.getX(), tank.getY());
+        ActionFinder.mapTimeSinceLastAction.put(DROP_MINE, 0);
     }
 
     private void pass(GameStateWrapper gameState, TankWrapper tank) {

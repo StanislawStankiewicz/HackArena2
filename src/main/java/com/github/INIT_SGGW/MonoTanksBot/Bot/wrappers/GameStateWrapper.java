@@ -4,6 +4,7 @@ import com.github.INIT_SGGW.MonoTanksBot.BasicBoard;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.Action;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.DistanceTable;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.entity.*;
+import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.RotationDirection;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import lombok.AllArgsConstructor;
@@ -82,6 +83,10 @@ public class GameStateWrapper implements Serializable {
     }
 
     public void moveEntity(EntityWrapper entity, int x, int y) {
+        //check out of bounds
+        if (x < 0 || x >= tableOfEntities.getWidth() || y < 0 || y >= tableOfEntities.getHeight()) {
+            return;
+        }
         assert (entity instanceof TankWrapper || entity instanceof BulletWrapper);
 
         tableOfEntities.get(entity.getX(), entity.getY()).remove(entity);
@@ -91,6 +96,10 @@ public class GameStateWrapper implements Serializable {
     }
 
     public void createBullet(BulletWrapper bullet) {
+        //out of bounds check
+        if (bullet.getX() < 0 || bullet.getX() >= tableOfEntities.getWidth() || bullet.getY() < 0 || bullet.getY() >= tableOfEntities.getHeight()) {
+            return;
+        }
         bullets.add(bullet);
         tableOfEntities.get(bullet.getX(), bullet.getY()).add(bullet);
     }
@@ -153,5 +162,10 @@ public class GameStateWrapper implements Serializable {
             }
         }
         return newTable;
+    }
+
+    public void rotateEntity(TankWrapper tank, RotationDirection rotationDirection) {
+        tank.rotateBody(rotationDirection);
+
     }
 }

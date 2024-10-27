@@ -6,33 +6,54 @@ import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.entity.TankWrapper;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.INIT_SGGW.MonoTanksBot.Bot.Action.*;
 
 
 public class ActionFinder {
 
+    public static Map<Action,Integer> mapTimeSinceLastAction = new HashMap<Action,Integer>();
+
     public static List<Action> getActions(GameStateWrapper gameState, TankWrapper tank) {
         List<Action> result = new ArrayList<>();
 
+        //increment time since last action
+        for (Action action : mapTimeSinceLastAction.keySet()) {
+            mapTimeSinceLastAction.put(action, mapTimeSinceLastAction.get(action) + 1);
+        }
+
         if (canMoveForward(gameState, tank)) {
-            result.add(MOVE_FORWARD);
+            if (mapTimeSinceLastAction.get(MOVE_FORWARD) == null || mapTimeSinceLastAction.get(MOVE_FORWARD) > 1) {
+                result.add(MOVE_FORWARD);
+            }
         }
         if (canMoveBackward(gameState, tank)) {
-            result.add(MOVE_BACKWARD);
+            if (mapTimeSinceLastAction.get(MOVE_BACKWARD) == null || mapTimeSinceLastAction.get(MOVE_BACKWARD) > 5) {
+                result.add(MOVE_BACKWARD);
+            }
         }
         if (canRotateTankLeft(gameState, tank)) {
-            result.add(ROTATE_TANK_LEFT);
+            if (mapTimeSinceLastAction.get(ROTATE_TANK_LEFT) == null || mapTimeSinceLastAction.get(ROTATE_TANK_LEFT) > 3) {
+                result.add(ROTATE_TANK_LEFT);
+            }
         }
         if (canRotateTankRight(gameState, tank)) {
-            result.add(ROTATE_TANK_RIGHT);
+            if (mapTimeSinceLastAction.get(ROTATE_TANK_RIGHT) == null || mapTimeSinceLastAction.get(ROTATE_TANK_RIGHT) > 3) {
+                result.add(ROTATE_TANK_RIGHT);
+            }
         }
         if (canRotateTurretLeft(gameState, tank)) {
-//            result.add(ROTATE_TURRET_LEFT);
+            if (mapTimeSinceLastAction.get(ROTATE_TURRET_LEFT) == null || mapTimeSinceLastAction.get(ROTATE_TURRET_LEFT) > 3) {
+                result.add(ROTATE_TURRET_LEFT);
+            }
         }
         if (canRotateTurretRight(gameState, tank)) {
-//            result.add(ROTATE_TURRET_RIGHT);
+            if (mapTimeSinceLastAction.get(ROTATE_TURRET_RIGHT) == null || mapTimeSinceLastAction.get(ROTATE_TURRET_LEFT) > 3) {
+                result.add(ROTATE_TURRET_RIGHT);
+            }
         }
         if (canUseFireBullet(tank)) {
             result.add(USE_FIRE_BULLET);

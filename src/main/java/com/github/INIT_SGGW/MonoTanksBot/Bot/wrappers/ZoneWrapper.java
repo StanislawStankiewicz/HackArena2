@@ -44,6 +44,14 @@ public class ZoneWrapper implements Serializable {
         };
     }
 
+    public int getX() {
+        return (int) zone.getX();
+    }
+
+    public int getY() {
+        return (int) zone.getY();
+    }
+
     public enum Status {
         NEUTRAL, BEING_CAPTURED, CAPTURED, BEING_CONTESTED
     }
