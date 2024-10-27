@@ -2,11 +2,13 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot.aggressive;
 
 import com.github.INIT_SGGW.MonoTanksBot.Bot.Action;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
+import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.Zone;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
 import java.util.Comparator;
 import java.util.List;
 
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.Config.MAX_STATIONARY_TICKS;
 import static com.github.INIT_SGGW.MonoTanksBot.Bot.Config.RADIUS_TO_ORBIT;
 
 
@@ -18,6 +20,8 @@ public class AggressorBot{
     public GameStateUtils utils;
 
     public State state;
+    private Point lastPosition = null;
+    private int stationaryTicks = 0;
 
     public AggressorBot(String id) {
         this.id = id;
@@ -28,21 +32,43 @@ public class AggressorBot{
     public Action nextMove(GameState gameState) {
         this.tick++;
         utils = new GameStateUtils(gameState);
+
+        // Get our current position
+        Point currentPosition = utils.getTankPosition(id);
+        if (currentPosition == null) {
+            // Cannot find our tank's position, pass
+            return Action.PASS;
+        }
+
+        // Check if we have been stationary
+        if (lastPosition != null) {
+            if (currentPosition.equals(lastPosition)) {
+                stationaryTicks++;
+            } else {
+                stationaryTicks = 0;
+            }
+        }
+        lastPosition = currentPosition;
+
+        // If stationary for more than 10 ticks, reset target point
+        if (stationaryTicks >= MAX_STATIONARY_TICKS) {
+            // Reset the targetPoint to a new random point
+            targetPoint = utils.getRandomPoint(id);
+            stationaryTicks = 0;
+            System.out.println("Bot has been stationary for 10 ticks. New target point: " + targetPoint);
+        }
+
         state = utils.determineState(id);
-        if (state == State.WANDERING) {
-            return wander();
-        }
-        if (state == State.APPROACHING) {
-            return approach();
-        }
-        if (state == State.ATTACKING) {
-            return attack();
-        }
-        if (state == State.CIRCLING) {
-            return circle();
-        }
-        return null;
+        return switch (state) {
+            case CAPTURING -> capturing();
+            case WANDERING -> wander();
+            case APPROACHING -> approach();
+            case ATTACKING -> attack();
+            case CIRCLING -> circle();
+            default -> Action.PASS;
+        };
     }
+
 
     private Action circle() {
         // Get our tank
@@ -157,7 +183,10 @@ public class AggressorBot{
             return Action.ROTATE_TURRET_LEFT;
         }
         if (utils.getTankPosition(id).equals(targetPoint)) {
-            targetPoint = null;
+            // Reached the target point, transition to CAPTURING state
+            state = State.CAPTURING;
+            System.out.println("Reached target point. Transitioning to CAPTURING state.");
+            return Action.PASS;
         }
         if (targetPoint == null) {
             targetPoint = utils.getRandomPoint(id);
@@ -170,10 +199,50 @@ public class AggressorBot{
         return utils.getMoveToGetToPoint(id, utils.getClosestEnemyPosition(id));
     }
 
+    private Action capturing() {
+        // Assume utils has methods to get capture zone and check capture status
+        Zone captureZone = utils.getTargetCaptureZone(id);
+        if (captureZone == null) {
+            // No capture zone assigned, transition back to WANDERING
+            state = State.WANDERING;
+            return wander();
+        }
+
+        // Check if the zone is already captured
+        if (utils.isZoneOurs(captureZone, id)) {
+            state = State.WANDERING;
+            targetPoint = null; // Reset target point to find a new one
+            return wander();
+        }
+
+        // Get our current position
+        Point ourPosition = utils.getTankPosition(id);
+        if (ourPosition == null) {
+            return Action.PASS;
+        }
+
+        // Ensure we're within the capture zone
+        if (!utils.isWithinZone(ourPosition, captureZone)) {
+            // Move back into the capture zone
+            System.out.println("Out of capture zone. Moving back into the zone.");
+            return utils.getMoveToPointWithinZone(id, captureZone);
+        }
+
+        // Optionally rotate turret or perform other actions to defend the capture
+        if (tick % 15 == 0) { // Example: rotate turret periodically
+            return Action.ROTATE_TURRET_RIGHT;
+        }
+
+        // Maintain position by possibly making minor adjustments
+        return Action.PASS; // Or implement movement to stay within the zone if necessary
+    }
+
+
     enum State {
         WANDERING,
         APPROACHING,
         ATTACKING,
-        CIRCLING
+        CIRCLING,
+        CAPTURING
     }
 }

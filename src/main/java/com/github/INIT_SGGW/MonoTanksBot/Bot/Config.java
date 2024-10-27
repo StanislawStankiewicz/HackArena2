@@ -15,4 +15,5 @@ public class Config {
 //    public static final int MAX_DEPTH = 1;
     public static final int RADIUS_TO_SWITCH_TO_ATTACKING = 3;
     public static final int RADIUS_TO_ORBIT = 2;
+    public static final int MAX_STATIONARY_TICKS = 100;
 }

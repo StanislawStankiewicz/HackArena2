@@ -1,7 +1,6 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
 import com.github.INIT_SGGW.MonoTanksBot.Bot.aggressive.AggressorBot;
-import com.github.INIT_SGGW.MonoTanksBot.Bot.aggressive.GameStateUtils;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.aggressive.Point;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.Bot;
 import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.BotResponse;

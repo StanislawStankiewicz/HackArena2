@@ -597,4 +597,124 @@ public class GameStateUtils {
             }
         }
     }
+
+    public Zone getTargetCaptureZone(String tankId) {
+        Zone[] zones = gameState.map().zones();
+        Point ourLocation = getTankPosition(tankId);
+
+        if (ourLocation == null) {
+            // If tank position is unknown, return null
+            return null;
+        }
+
+        Zone targetZone = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Zone zone : zones) {
+            if (!isZoneOurs(zone, tankId)) {
+                double distance = euclideanDistance(ourLocation, new Point((int) zone.y, (int) zone.x));
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    targetZone = zone;
+                }
+            }
+        }
+
+        if (targetZone == null) {
+            // All zones are captured
+            System.out.println("All zones are captured.");
+        } else {
+            System.out.println("Targeting capture zone at (" + targetZone.x + ", " + targetZone.y + ")");
+        }
+
+        return targetZone;
+    }
+
+    /**
+     * Checks if the specified zone has been captured.
+     *
+     * @param zone The Zone to check.
+     * @return True if the zone is captured, false otherwise.
+     */
+    public boolean isZoneOurs(Zone zone, String id) {
+        // Assuming Zone has a method or property to determine capture status
+        // Adjust the following line based on your actual Zone implementation
+        // For example, if 'ownerId' is set when captured:
+        return switch (zone.getStatus()) {
+            case Zone.ZoneStatus.Neutral neutral -> false;
+            case Zone.ZoneStatus.BeingCaptured beingCaptured -> !beingCaptured.playerId.equals(id);
+            case Zone.ZoneStatus.Captured captured -> captured.playerId.equals(id);
+            case Zone.ZoneStatus.BeingContested beingContested -> false;
+            case null, default -> throw new IllegalStateException("Unknown zone status");
+        };
+    }
+
+    /**
+     * Determines if a given position is within the specified zone.
+     *
+     * @param position The position to check.
+     * @param zone     The Zone to check against.
+     * @return True if the position is within the zone, false otherwise.
+     */
+    public boolean isWithinZone(Point position, Zone zone) {
+        // Convert Zone coordinates and dimensions to long for comparison
+        long posX = position.x;
+        long posY = position.y;
+
+        // Calculate the boundaries of the zone
+        long zoneLeft = zone.x;
+        long zoneTop = zone.y;
+        long zoneRight = zone.x + zone.width;
+        long zoneBottom = zone.y + zone.height;
+
+        // Check if the position is within the horizontal boundaries
+        boolean withinX = posX >= zoneLeft && posX < zoneRight;
+
+        // Check if the position is within the vertical boundaries
+        boolean withinY = posY >= zoneTop && posY < zoneBottom;
+
+        // Return true only if both horizontal and vertical conditions are met
+        return withinX && withinY;
+    }
+
+    /**
+     * Generates an action to move the tank towards a strategic point within the capture zone.
+     * For simplicity, we'll choose the center of the zone as the target point.
+     *
+     * @param tankId The ID of the bot's tank.
+     * @param zone   The Zone to move within.
+     * @return The Action to move towards the center of the zone, or PASS if already there.
+     */
+    public Action getMoveToPointWithinZone(String tankId, Zone zone) {
+        Point ourPosition = getTankPosition(tankId);
+        if (ourPosition == null) {
+            return Action.PASS;
+        }
+
+        Point zoneCenter = new Point((int) zone.y, (int) zone.x);
+
+        if (isWithinZone(ourPosition, zone)) {
+            // Already within the zone
+            return Action.PASS;
+        }
+
+        // Move towards the center of the zone
+        return getMoveToGetToPoint(tankId, zoneCenter);
+    }
+
+    /**
+     * Calculates the Euclidean distance between two points.
+     *
+     * @param a First point.
+     * @param b Second point.
+     * @return The Euclidean distance.
+     */
+    private double euclideanDistance(Point a, Point b) {
+        int dx = a.x - b.x;
+        int dy = a.y - b.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    public enum Status {
+        NEUTRAL, BEING_CAPTURED, CAPTURED, BEING_CONTESTED
+    }
 }
