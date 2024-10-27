@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.MyBot2;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -147,7 +148,7 @@ public class CustomWebSocketClient extends WebSocketClient {
                 logger.info("🎳 Lobby data received");
                 LobbyData lobbyData = this.mapper.readValue(packet.getPayload().toString(), LobbyData.class);
                 if (this.bot == null) {
-                    this.bot = new MyBot(lobbyData);
+                    this.bot = new MyBot2(lobbyData);
                     logger.info("🤖 Created bot");
 
                     if (lobbyData.serverSettings().sandboxMode()) {
