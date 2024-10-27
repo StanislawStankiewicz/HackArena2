@@ -9,12 +9,14 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.Config.RADIUS_TO_SWITCH_TO_ATTACKING;
+
 @RequiredArgsConstructor
 public class GameStateUtils {
 
     private final GameState gameState;
 
-    private boolean isWall(int x, int y) {
+    boolean isWall(int x, int y) {
         return gameState.map().tiles()[x][y].getEntities()
                 .stream().anyMatch(entity -> entity instanceof Tile.Wall);
     }
@@ -39,6 +41,100 @@ public class GameStateUtils {
             }
         }
         return new Point((int) zone.y, (int)zone.x);
+    }
+
+    public Tile.Tank getClosestEnemyTank(String ourTankId) {
+        Tile.Tank ourTank = findTankById(ourTankId);
+        if (ourTank == null) {
+            return null;
+        }
+
+        Point ourPosition = getTankPosition(ourTank);
+        if (ourPosition == null) {
+            return null;
+        }
+
+        List<Tile.Tank> visibleEnemies = getVisibleEnemyTanks(ourTankId);
+        if (visibleEnemies.isEmpty()) {
+            return null;
+        }
+
+        Tile.Tank closestEnemyTank = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (Tile.Tank enemyTank : visibleEnemies) {
+            Point enemyPosition = getTankPosition(enemyTank);
+            if (enemyPosition == null) {
+                continue;
+            }
+
+            int distance = Math.abs(ourPosition.x - enemyPosition.x) + Math.abs(ourPosition.y - enemyPosition.y);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestEnemyTank = enemyTank;
+            }
+        }
+
+        return closestEnemyTank;
+    }
+
+    public List<Point> getPositionsAround(Point center, int radius) {
+        List<Point> positions = new ArrayList<>();
+        int x0 = center.x;
+        int y0 = center.y;
+
+        // For positions in the square bounding the circle
+        for (int x = x0 - radius; x <= x0 + radius; x++) {
+            for (int y = y0 - radius; y <= y0 + radius; y++) {
+                // Check map boundaries
+                if (x < 0 || x >= gameState.map().tiles().length || y < 0 || y >= gameState.map().tiles()[0].length) {
+                    continue;
+                }
+                // Calculate the Manhattan distance to the center
+                int distance = Math.abs(x - x0) + Math.abs(y - y0);
+                if (distance == radius) {
+                    positions.add(new Point(x, y));
+                }
+            }
+        }
+        return positions;
+    }
+
+    public boolean isInEnemyBarrelLine(Tile.Tank enemyTank, Point position) {
+        Point enemyPosition = getTankPosition(enemyTank);
+        if (enemyPosition == null) {
+            return false;
+        }
+
+        Direction enemyDirection = enemyTank.getTurret().direction();
+
+        int dx = position.x - enemyPosition.x;
+        int dy = position.y - enemyPosition.y;
+
+        switch (enemyDirection) {
+            case UP:
+                return dx < 0 && dy == 0;
+            case DOWN:
+                return dx > 0 && dy == 0;
+            case LEFT:
+                return dy < 0 && dx == 0;
+            case RIGHT:
+                return dy > 0 && dx == 0;
+            default:
+                return false;
+        }
+    }
+
+    public double angleBetween(Point center, Point point) {
+        // Adjust for coordinate system: x is vertical, y is horizontal
+        double dx = point.y - center.y; // x-axis in angle calculation (horizontal movement)
+        double dy = center.x - point.x; // y-axis in angle calculation (vertical movement inverted)
+        return Math.atan2(dy, dx);
+    }
+
+    public int manhattanDistance(Point a, Point b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 
     public Action getMoveToGetToPoint(String id, Point targetPoint) {
@@ -257,7 +353,7 @@ public class GameStateUtils {
         }
 
         // Define the radius
-        int radius = 3; // Adjust as needed
+        int radius = RADIUS_TO_SWITCH_TO_ATTACKING; // Adjust as needed
 
         // Get our tank's position
         Point ourPosition = getTankPosition(ourTank);
@@ -475,7 +571,7 @@ public class GameStateUtils {
         return points;
     }
 
-    private boolean isOccupied(int x, int y) {
+    boolean isOccupied(int x, int y) {
         return gameState.map().tiles()[x][y].getEntities()
                 .stream().anyMatch(entity -> entity instanceof Tile.Tank || entity instanceof Tile.Wall);
     }
