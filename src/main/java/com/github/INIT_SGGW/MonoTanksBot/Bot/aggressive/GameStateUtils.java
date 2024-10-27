@@ -30,8 +30,6 @@ public class GameStateUtils {
         Zone zone = zones[0];
         long distance = 0;
         for (Zone z : zones) {
-            System.out.println("Zone:");
-            System.out.println(z.x + " " + z.y);
             long x = z.x - ourLocation.x;
             long y = z.y - ourLocation.y;
             long d = x * x + y * y;
@@ -40,7 +38,13 @@ public class GameStateUtils {
                 zone = z;
             }
         }
-        return new Point((int) zone.y, (int)zone.x);
+        int x, y;
+        Random random = new Random();
+        do {
+            x = (int) (zone.y + random.nextInt((int)zone.height- 1));
+            y = (int) zone.x + random.nextInt((int)zone.width - 1);
+        } while (isWall(x, y));
+        return new Point(x, y);
     }
 
     public Tile.Tank getClosestEnemyTank(String ourTankId) {
@@ -339,6 +343,7 @@ public class GameStateUtils {
     }
 
     public AggressorBot.State determineState(String id) {
+        // Find our tank by ID
         Tile.Tank ourTank = findTankById(id);
         if (ourTank == null) {
             // Tank not found; default to WANDERING
@@ -347,34 +352,51 @@ public class GameStateUtils {
 
         // Get the list of visible enemy tanks
         List<Tile.Tank> visibleEnemies = getVisibleEnemyTanks(id);
-        if (visibleEnemies.isEmpty()) {
-            // No visible tanks
-            return AggressorBot.State.WANDERING;
-        }
 
-        // Define the radius
-        int radius = RADIUS_TO_SWITCH_TO_ATTACKING; // Adjust as needed
+        // Initialize state to WANDERING
+        AggressorBot.State state = null;
 
-        // Get our tank's position
-        Point ourPosition = getTankPosition(ourTank);
+        if (!visibleEnemies.isEmpty()) {
+            // Define the radius
+            int radius = RADIUS_TO_SWITCH_TO_ATTACKING; // Adjust as needed
 
-        // Check if any enemy tank is further than the radius
-        for (Tile.Tank enemyTank : visibleEnemies) {
-            Point enemyPosition = getTankPosition(enemyTank);
-            int distance = Math.abs(ourPosition.x - enemyPosition.x) + Math.abs(ourPosition.y - enemyPosition.y);
-            if (distance > radius) {
-                return AggressorBot.State.APPROACHING;
+            // Get our tank's position
+            Point ourPosition = getTankPosition(ourTank);
+
+            // Check if any enemy tank is further than the radius
+            boolean isApproaching = false;
+            for (Tile.Tank enemyTank : visibleEnemies) {
+                Point enemyPosition = getTankPosition(enemyTank);
+                int distance = Math.abs(ourPosition.x - enemyPosition.x) + Math.abs(ourPosition.y - enemyPosition.y);
+                if (distance > radius) {
+                    isApproaching = true;
+                    break;
+                }
             }
+
+            if (isApproaching) {
+                state = AggressorBot.State.APPROACHING;
+            } else {
+                // Check our tank's bullet count
+                int bullets = ourTank.getTurret().bulletCount().orElse(0L).intValue();
+                if (bullets > 0) {
+                    state = AggressorBot.State.ATTACKING;
+                } else {
+                    state = AggressorBot.State.CIRCLING;
+                }
+            }
+            return state;
         }
 
-        // Check our tank's bullet count
-        int bullets = ourTank.getTurret().bulletCount().orElse(0L).intValue();
-        if (bullets > 0) {
-            return AggressorBot.State.ATTACKING;
-        } else {
-            return AggressorBot.State.CIRCLING;
+        // Now, check if we are capturing a zone
+        if (isWithinZone(getTankPosition(ourTank), gameState.map().zones())) {
+            return AggressorBot.State.CAPTURING;
         }
+
+        // Otherwise, return the fight-related state
+        return AggressorBot.State.WANDERING;
     }
+
 
     private List<Tile.Tank> getVisibleEnemyTanks(String ourTankId) {
         List<Tile.Tank> enemyTanks = new ArrayList<>();
@@ -619,14 +641,6 @@ public class GameStateUtils {
                 }
             }
         }
-
-        if (targetZone == null) {
-            // All zones are captured
-            System.out.println("All zones are captured.");
-        } else {
-            System.out.println("Targeting capture zone at (" + targetZone.x + ", " + targetZone.y + ")");
-        }
-
         return targetZone;
     }
 
@@ -642,10 +656,10 @@ public class GameStateUtils {
         // For example, if 'ownerId' is set when captured:
         return switch (zone.getStatus()) {
             case Zone.ZoneStatus.Neutral neutral -> false;
-            case Zone.ZoneStatus.BeingCaptured beingCaptured -> !beingCaptured.playerId.equals(id);
+            case Zone.ZoneStatus.BeingCaptured beingCaptured -> false;
             case Zone.ZoneStatus.Captured captured -> captured.playerId.equals(id);
             case Zone.ZoneStatus.BeingContested beingContested -> false;
-            case null, default -> throw new IllegalStateException("Unknown zone status");
+            case null, default -> false;
         };
     }
 
@@ -656,25 +670,30 @@ public class GameStateUtils {
      * @param zone     The Zone to check against.
      * @return True if the position is within the zone, false otherwise.
      */
-    public boolean isWithinZone(Point position, Zone zone) {
+    public boolean isWithinZone(Point position, Zone[] zones) {
         // Convert Zone coordinates and dimensions to long for comparison
         long posX = position.x;
         long posY = position.y;
 
         // Calculate the boundaries of the zone
-        long zoneLeft = zone.x;
-        long zoneTop = zone.y;
-        long zoneRight = zone.x + zone.width;
-        long zoneBottom = zone.y + zone.height;
+        for (Zone zone : zones) {
+            long zoneLeft = zone.x;
+            long zoneTop = zone.y;
+            long zoneRight = zone.x + zone.width - 1;
+            long zoneBottom = zone.y + zone.height - 1;
 
-        // Check if the position is within the horizontal boundaries
-        boolean withinX = posX >= zoneLeft && posX < zoneRight;
+            // Check if the position is within the horizontal boundaries
+            boolean withinX = posX >= zoneLeft && posX < zoneRight;
 
-        // Check if the position is within the vertical boundaries
-        boolean withinY = posY >= zoneTop && posY < zoneBottom;
+            // Check if the position is within the vertical boundaries
+            boolean withinY = posY >= zoneTop && posY < zoneBottom;
 
-        // Return true only if both horizontal and vertical conditions are met
-        return withinX && withinY;
+            // Return true only if both horizontal and vertical conditions are met
+            if (withinX && withinY) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -693,7 +712,7 @@ public class GameStateUtils {
 
         Point zoneCenter = new Point((int) zone.y, (int) zone.x);
 
-        if (isWithinZone(ourPosition, zone)) {
+        if (isWithinZone(ourPosition, Arrays.stream(gameState.map().zones()).allMatch(z -> z.equals(zone)) ? new Zone[]{zone} : gameState.map().zones())) {
             // Already within the zone
             return Action.PASS;
         }

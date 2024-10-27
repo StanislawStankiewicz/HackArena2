@@ -33,7 +33,11 @@ public class MyBot extends Bot {
 
     @Override
     public BotResponse nextMove(GameState gameState) {
-        return MoveMap.moveToResponse.get(bot.nextMove(gameState));
+        try {
+            return MoveMap.moveToResponse.get(bot.nextMove(gameState));
+        } catch (Exception e) {
+            return MoveMap.moveToResponse.get(Action.PASS);
+        }
     }
 
     @Override
