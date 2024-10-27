@@ -1,26 +1,38 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot.util;
 
+import com.github.INIT_SGGW.MonoTanksBot.BasicBoard;
+import com.github.INIT_SGGW.MonoTanksBot.Bot.DistanceTable;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.old.BoardDistances;
+import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.ZoneWrapper;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
 import java.util.List;
+import java.util.Map;
 
 public class BoardPrinter {
 
-    public static void printBoardDistances(GameState gameState, BoardDistances boardDistances) {
-        for (int x = 0; x < gameState.map().tiles()[0].length; x++) {
-            for (int y = 0; y < gameState.map().tiles().length; y++) {
-                int distance = (int) boardDistances.getDistance(x,y)[1];
-                if (distance == 2147483647) {
+    public static void printBoardDistances(int width, int height, BasicBoard<Map<ZoneWrapper, Integer>> distances, ZoneWrapper zone) {
+        System.out.println("Dimensions: " );
+        System.out.println("Width: " + distances.getWidth());
+        System.out.println("Height: " + distances.getHeight());
+        for (int x = 0; x < height; x++) {
+            for (int y = 0; y < width; y++) {
+                Integer distance = distances.get(x,y).get(zone);
+                if(distance==null){
+                    System.out.printf("%2s ", "n");
+                }
+                else if (distance == Integer.MAX_VALUE) {
                     System.out.printf("%2s ", "X");
                 } else {
                     System.out.printf("%2d ", distance);
                 }
             }
+            System.out.println();
         }
+        System.out.println("---");
     }
 
     public static void printBoard(GameState gameState, String myId) {

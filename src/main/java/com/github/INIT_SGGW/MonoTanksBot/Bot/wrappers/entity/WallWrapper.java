@@ -4,4 +4,8 @@ public class WallWrapper extends EntityWrapper {
     public WallWrapper(int x, int y) {
         super(x, y);
     }
+
+    public WallWrapper clone(){
+        return new WallWrapper(x, y);
+    }
 }

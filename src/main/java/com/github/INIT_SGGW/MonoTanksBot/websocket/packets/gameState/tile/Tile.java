@@ -1,5 +1,6 @@
 package com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class Tile {
             @JsonSubTypes.Type(value = Laser.class, name = "laser"),
             @JsonSubTypes.Type(value = Mine.class, name = "mine")
     })
-    public static abstract class TileEntity {
+    public static abstract class TileEntity implements Serializable {
     }
 
     /**

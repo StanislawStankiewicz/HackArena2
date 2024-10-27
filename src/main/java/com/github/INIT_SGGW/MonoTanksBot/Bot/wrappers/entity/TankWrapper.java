@@ -6,7 +6,9 @@ import com.github.INIT_SGGW.MonoTanksBot.BotAbstraction.RotationDirection;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Turret;
+import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -143,5 +145,29 @@ public class TankWrapper extends EntityWrapper {
     @Override
     public int hashCode() {
         return Objects.hashCode(getId());
+    }
+    
+    public TankWrapper clone() {
+        Tile.Tank newTank = new Tile.Tank();
+        newTank.setOwnerId(tank.getOwnerId());
+        newTank.setDirection(tank.getDirection());
+        newTank.setHealth(Optional.of(tank.getHealth().orElse(0L)));
+        Turret newTurret = new Turret(
+                tank.getTurret().direction(),
+                Optional.of(tank.getTurret().bulletCount().orElse(0L)),
+                Optional.of(tank.getTurret().ticksToRegenBullet().orElse(0d))
+        );
+        newTank.setTurret(newTurret);
+        newTank.setSecondaryItem(tank.getSecondaryItem());
+        return new TankWrapper(tank, x, y);
+    }
+
+    @Override
+    public String toString() {
+        return "TankWrapper{" +
+                "tank=" + tank +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

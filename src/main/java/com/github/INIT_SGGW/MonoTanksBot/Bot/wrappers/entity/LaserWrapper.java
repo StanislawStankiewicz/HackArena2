@@ -24,4 +24,11 @@ public class LaserWrapper extends EntityWrapper {
         super(x, y);
         this.direction = direction;
     }
+
+    public LaserWrapper clone(){
+        Tile.Laser laser = new Tile.Laser();
+        laser.setId(this.laser.getId());
+        laser.setOrientation(this.laser.getOrientation());
+        return new LaserWrapper(laser, x, y);
+    }
 }

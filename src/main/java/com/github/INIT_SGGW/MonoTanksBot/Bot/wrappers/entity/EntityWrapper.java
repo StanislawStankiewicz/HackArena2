@@ -3,9 +3,11 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public abstract class EntityWrapper {
+public abstract class EntityWrapper implements Serializable {
     protected int x;
     protected int y;
 
@@ -20,4 +22,6 @@ public abstract class EntityWrapper {
         this.x = x;
         this.y = y;
     }
+
+    public abstract EntityWrapper clone();
 }

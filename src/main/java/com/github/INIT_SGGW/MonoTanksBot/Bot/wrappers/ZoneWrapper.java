@@ -1,8 +1,12 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers;
 
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.Zone;
+import lombok.EqualsAndHashCode;
 
-public class ZoneWrapper {
+import java.io.Serializable;
+
+@EqualsAndHashCode
+public class ZoneWrapper implements Serializable {
     private Zone zone;
 
     public int getIndex() {
@@ -40,10 +44,22 @@ public class ZoneWrapper {
         };
     }
 
-    enum Status {
+    public enum Status {
         NEUTRAL, BEING_CAPTURED, CAPTURED, BEING_CONTESTED
     }
-    enum OwnedBy {
+    public enum OwnedBy {
         NOONE, US, ENEMY
+    }
+
+    @Override
+    public ZoneWrapper clone() {
+        Zone newZone = new Zone();
+        newZone.setIndex(zone.index);
+        newZone.setStatus(zone.getStatus());
+        newZone.setX(zone.getX());
+        newZone.setY(zone.getY());
+        newZone.setWidth(zone.getWidth());
+        newZone.setHeight(zone.getHeight());
+        return new ZoneWrapper(newZone);
     }
 }

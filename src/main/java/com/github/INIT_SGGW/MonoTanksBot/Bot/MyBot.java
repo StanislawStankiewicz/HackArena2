@@ -1,7 +1,9 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot;
 
 import java.util.Optional;
+import java.util.Random;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.util.BoardPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,17 +14,16 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.lobbyData.LobbyData;
 
-import static com.github.INIT_SGGW.MonoTanksBot.Bot.old.Simulation.getFeasibleMoves;
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.Config.MAX_DEPTH;
 
 public class MyBot extends Bot {
     private static final Logger logger = LoggerFactory.getLogger(MyBot.class);
 
-    private final String id;
+    public static String id;
 
     public MyBot(LobbyData lobbyData) {
         super(lobbyData);
         id = lobbyData.playerId();
-        System.out.println("My name is id! " + id);
     }
 
     @Override
@@ -32,7 +33,17 @@ public class MyBot extends Bot {
 
     @Override
     public BotResponse nextMove(GameState gameState) {
-        Action bestAction = Action.MOVE_BACKWARD;
+        Board board = new Board(gameState);
+
+        Action bestAction = Action.PASS;
+
+        try {
+            bestAction = MiniMax.getBestAction(board, MAX_DEPTH);
+            System.out.println("Best action: " + bestAction);
+        } catch (Exception e) {
+            logger.error("Error in MiniMax", e);
+        }
+
         return MoveMap.moveToResponse.get(bestAction);
     }
 
@@ -45,22 +56,4 @@ public class MyBot extends Bot {
     public void onGameEnd(GameEnd gameEnd) {
         // TODO Auto-generated method stub
     }
-
-    // MINIMAX SECTION
-//
-//    private BotResponse getBestMove(GameState gameState, int depth, boolean isMaximizing) {
-//        BotResponse bestMove = null;
-//        int bestScore = isMaximizing ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-//        for (// possible moves) {
-//            // create new gamestate with move applied
-//            int score = minimax(newState, depth - 1, !isMaximizing);
-//            if (isMaximizing && score > bestScore) {
-//                bestScore = score;
-//                bestMove = move;
-//            } else if (!isMaximizing && score < bestScore) {
-//                bestScore = score;
-//                bestMove = move;
-//            }
-//        }
-//    }
 }

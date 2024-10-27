@@ -2,29 +2,40 @@ package com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers;
 
 import com.github.INIT_SGGW.MonoTanksBot.BasicBoard;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.Action;
+import com.github.INIT_SGGW.MonoTanksBot.Bot.DistanceTable;
 import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.entity.*;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public class GameStateWrapper {
+@Builder
+@AllArgsConstructor
+public class GameStateWrapper implements Serializable {
     private final List<ZoneWrapper> zones;
 
-    private final List<TankWrapper> tanks = new ArrayList<>();
-    private final List<ItemWrapper> items = new ArrayList<>();
-    private final List<MineWrapper> mines = new ArrayList<>();
-    private final List<BulletWrapper> bullets = new ArrayList<>();
+    private final List<TankWrapper> tanks;
+    private final List<ItemWrapper> items;
+    private final List<MineWrapper> mines;
+    private final List<BulletWrapper> bullets;
     private BasicBoard<List<EntityWrapper>> tableOfEntities;
 
     public GameStateWrapper(GameState gameState) {
         zones = Arrays.stream(gameState.map().zones())
                 .map(ZoneWrapper::new)
                 .toList();
+        tanks = new ArrayList<>();
+        items = new ArrayList<>();
+        mines = new ArrayList<>();
+        bullets = new ArrayList<>();
         parseGameState(gameState);
     }
 
@@ -107,6 +118,10 @@ public class GameStateWrapper {
        return tableOfEntities.get(x, y).stream().anyMatch(entity -> entity instanceof WallWrapper);
     }
 
+    public boolean isTank(int x, int y) {
+        return tableOfEntities.get(x, y).stream().anyMatch(entity -> entity instanceof TankWrapper);
+    }
+
     public void createMine(int x, int y) {
         // TODO we place the mine under ourselves so when does it explode? after the next move? maybe minimax already solves this by escaping?
         MineWrapper mine = new MineWrapper(null, x, y);
@@ -114,32 +129,29 @@ public class GameStateWrapper {
         tableOfEntities.get(x, y).add(mine);
     }
 
-    public int countBulletsFlyingAt(TankWrapper tank){
-        //check all 4 directions of the tank see if any bullets are flying at it
-        int x = tank.getX();
-        int y = tank.getY();
-        int count = 0;
-        for (DirectionWrapper direction : DirectionWrapper.values()) {
-            int dx = direction == DirectionWrapper.RIGHT ? 1 : 0;
-            dx -= direction == DirectionWrapper.LEFT ? 1 : 0;
-            int dy = direction == DirectionWrapper.DOWN ? 1 : 0;
-            dy -= direction == DirectionWrapper.UP ? 1 : 0;
-            int newX = x + dx;
-            int newY = y + dy;
-            while (newX >= 0 && newX < tableOfEntities.getWidth() && newY >= 0 && newY < tableOfEntities.getHeight()) {
-                if (tableOfEntities.get(newX, newY).stream().anyMatch(entity -> entity instanceof BulletWrapper && ((BulletWrapper) entity).getDirection()==direction)) {
-                    count++;
-                }
-                newX += dx;
-                newY += dy;
-            }
-        }
-        return count;
+
+
+    public GameStateWrapper deepClone() {
+        return GameStateWrapper.builder()
+                .tableOfEntities(cloneTableOfEntities())
+                .zones(new ArrayList<>(zones.stream().map(ZoneWrapper::clone).toList()))
+                .tanks(new ArrayList<>(tanks.stream().map(TankWrapper::clone).toList()))
+                .items(new ArrayList<>(items.stream().map(ItemWrapper::clone).toList()))
+                .mines(new ArrayList<>(mines.stream().map(MineWrapper::clone).toList()))
+                .bullets(new ArrayList<>(bullets.stream().map(BulletWrapper::clone).toList()))
+                .build();
     }
 
-    public float evaluate() {
-        float score = 0;
-        //todo cratet Tank OurTank field
-        return 0;
+    private BasicBoard<List<EntityWrapper>> cloneTableOfEntities() {
+        BasicBoard<List<EntityWrapper>> newTable = new BasicBoard<>(tableOfEntities.getWidth(), tableOfEntities.getHeight());
+        for (int i = 0; i < tableOfEntities.getWidth(); i++) {
+            for (int j = 0; j < tableOfEntities.getHeight(); j++) {
+                newTable.set(i, j, new ArrayList<>());
+                for (var entity : tableOfEntities.get(i, j)) {
+                    newTable.get(i, j).add(entity.clone());
+                }
+            }
+        }
+        return newTable;
     }
 }

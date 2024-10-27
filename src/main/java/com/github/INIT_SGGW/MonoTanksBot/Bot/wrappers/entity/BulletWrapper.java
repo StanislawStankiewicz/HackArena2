@@ -4,6 +4,8 @@ import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.DirectionWrapper;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
+import java.io.Serializable;
+
 public class BulletWrapper extends EntityWrapper {
 
     private Tile.Bullet bullet;
@@ -45,5 +47,11 @@ public class BulletWrapper extends EntityWrapper {
         bullet.setSpeed(speed);
         bullet.setType(type);
         return bullet;
+    }
+
+    public BulletWrapper clone(){
+        Tile.Bullet bullet = new Tile.Bullet();
+        bullet.setDirection(this.bullet.getDirection());
+        return new BulletWrapper(bullet, x, y);
     }
 }

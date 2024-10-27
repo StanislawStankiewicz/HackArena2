@@ -1,6 +1,8 @@
 package com.github.INIT_SGGW.MonoTanksBot;
 
-public class BasicBoard<T> {
+import java.io.Serializable;
+
+public class BasicBoard<T> implements Serializable {
     private T[][] board;
 
     public BasicBoard(int width, int height) {

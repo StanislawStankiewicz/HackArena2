@@ -14,4 +14,8 @@ public class ItemWrapper extends EntityWrapper {
         super(x, y);
         this.item = item;
     }
+
+    public ItemWrapper clone(){
+        return new ItemWrapper(new Tile.Item(), x, y);
+    }
 }

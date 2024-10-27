@@ -11,4 +11,8 @@ public class MineWrapper extends EntityWrapper {
         super(x, y);
         this.mine = mine;
     }
+
+    public MineWrapper clone(){
+        return new MineWrapper(new Tile.Mine(),x, y);
+    }
 }
