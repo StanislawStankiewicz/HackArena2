@@ -1,5 +1,6 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.entity;
 
+import com.github.INIT_SGGW.MonoTanksBot.Bot.wrappers.DirectionWrapper;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 
@@ -14,6 +15,10 @@ public class BulletWrapper extends EntityWrapper {
 
     public BulletWrapper(int x, int y, Direction direction, double speed, Tile.BulletType type) {
         this(createBullet(direction, speed, type), x, y);
+    }
+
+    public DirectionWrapper getDirection() {
+        return DirectionWrapper.from(bullet.getDirection());
     }
 
     public void advance() {

@@ -113,4 +113,33 @@ public class GameStateWrapper {
         mines.add(mine);
         tableOfEntities.get(x, y).add(mine);
     }
+
+    public int countBulletsFlyingAt(TankWrapper tank){
+        //check all 4 directions of the tank see if any bullets are flying at it
+        int x = tank.getX();
+        int y = tank.getY();
+        int count = 0;
+        for (DirectionWrapper direction : DirectionWrapper.values()) {
+            int dx = direction == DirectionWrapper.RIGHT ? 1 : 0;
+            dx -= direction == DirectionWrapper.LEFT ? 1 : 0;
+            int dy = direction == DirectionWrapper.DOWN ? 1 : 0;
+            dy -= direction == DirectionWrapper.UP ? 1 : 0;
+            int newX = x + dx;
+            int newY = y + dy;
+            while (newX >= 0 && newX < tableOfEntities.getWidth() && newY >= 0 && newY < tableOfEntities.getHeight()) {
+                if (tableOfEntities.get(newX, newY).stream().anyMatch(entity -> entity instanceof BulletWrapper && ((BulletWrapper) entity).getDirection()==direction)) {
+                    count++;
+                }
+                newX += dx;
+                newY += dy;
+            }
+        }
+        return count;
+    }
+
+    public float evaluate() {
+        float score = 0;
+        //todo cratet Tank OurTank field
+        return 0;
+    }
 }
