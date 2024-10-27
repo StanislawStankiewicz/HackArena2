@@ -677,10 +677,10 @@ public class GameStateUtils {
 
         // Calculate the boundaries of the zone
         for (Zone zone : zones) {
-            long zoneLeft = zone.x;
-            long zoneTop = zone.y;
-            long zoneRight = zone.x + zone.width - 1;
-            long zoneBottom = zone.y + zone.height - 1;
+            long zoneLeft =  zone.y;
+            long zoneTop = zone.x;
+            long zoneRight = zone.y + zone.height - 1;
+            long zoneBottom = zone.x + zone.width - 1;
 
             // Check if the position is within the horizontal boundaries
             boolean withinX = posX >= zoneLeft && posX < zoneRight;
