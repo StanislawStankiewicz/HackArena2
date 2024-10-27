@@ -1,6 +1,6 @@
 package com.github.INIT_SGGW.MonoTanksBot.Bot.util;
 
-import com.github.INIT_SGGW.MonoTanksBot.Bot.BoardDistances;
+import com.github.INIT_SGGW.MonoTanksBot.Bot.old.BoardDistances;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Direction;

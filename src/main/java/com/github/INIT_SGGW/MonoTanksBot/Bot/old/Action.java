@@ -1,6 +1,6 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.old;
 
-public enum MoveType {
+public enum Action {
     MOVE_FORWARD,
     MOVE_BACKWARD,
     ROTATE_TANK_LEFT,

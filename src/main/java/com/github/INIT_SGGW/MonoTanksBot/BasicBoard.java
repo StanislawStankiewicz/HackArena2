@@ -1,4 +1,4 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot.entities;
+package com.github.INIT_SGGW.MonoTanksBot;
 
 public class BasicBoard<T> {
     private T[][] board;

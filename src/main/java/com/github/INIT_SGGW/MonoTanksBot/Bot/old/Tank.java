@@ -1,7 +1,5 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot.entities;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.old;
 
-import com.github.INIT_SGGW.MonoTanksBot.Bot.Direction;
-import com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot.entities;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.old;
 
 import lombok.Setter;
 

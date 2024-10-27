@@ -1,4 +1,4 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.old;
 
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;

@@ -1,6 +1,5 @@
-package com.github.INIT_SGGW.MonoTanksBot.Bot;
+package com.github.INIT_SGGW.MonoTanksBot.Bot.old;
 
-import com.github.INIT_SGGW.MonoTanksBot.Bot.entities.Tank;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.ItemType;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
@@ -8,12 +7,12 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.tile.Tile;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveType.*;
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.old.Action.*;
 
 public class Simulation {
 
-    public static List<MoveType> getFeasibleMoves(GameState gameState, Tank tank) {
-        List<MoveType> result = new ArrayList<>();
+    public static List<Action> getFeasibleMoves(GameState gameState, Tank tank) {
+        List<Action> result = new ArrayList<>();
 
         int[] tankPosition = {tank.getX(), tank.getY()};
         Direction direction = tank.getDrivingDirection();

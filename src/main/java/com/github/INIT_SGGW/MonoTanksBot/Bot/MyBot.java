@@ -12,14 +12,12 @@ import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameEnd.GameEnd;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.gameState.GameState;
 import com.github.INIT_SGGW.MonoTanksBot.websocket.packets.lobbyData.LobbyData;
 
-import static com.github.INIT_SGGW.MonoTanksBot.Bot.MoveLogic.*;
-import static com.github.INIT_SGGW.MonoTanksBot.Bot.Simulation.getFeasibleMoves;
+import static com.github.INIT_SGGW.MonoTanksBot.Bot.old.Simulation.getFeasibleMoves;
 
 public class MyBot extends Bot {
     private static final Logger logger = LoggerFactory.getLogger(MyBot.class);
 
     private final String id;
-    private OldBoard board;
 
     public MyBot(LobbyData lobbyData) {
         super(lobbyData);
@@ -34,33 +32,8 @@ public class MyBot extends Bot {
 
     @Override
     public BotResponse nextMove(GameState gameState) {
-        if (board != null){
-            board.update(gameState);
-        } else {
-            board = new OldBoard(gameState, id);
-        }
-        float bestScore = Float.MIN_VALUE;
-        MoveType bestMove = MoveType.PASS;
-        float score;
-        for (MoveType moveType : getFeasibleMoves(gameState, board.getOurTank())) {
-            OldBoard newBoard = board.deepCopy();
-            newBoard.applyMoveToTank(id, moveType);
-            score = newBoard.evaluateBoard();
-            if (score > bestScore) {
-                bestScore = score;
-                bestMove = moveType;
-            }
-        }
-        BotResponse finalMove = getMoveOrDefault(bestMove);
-        return finalMove;
-    }
-
-    private BotResponse getMoveOrDefault(MoveType move) {
-        try {
-            return moveMap.get(move).call();
-        } catch (Exception e) {
-            return BotResponse.createPassResponse();
-        }
+        Action bestAction = Action.MOVE_BACKWARD;
+        return MoveMap.moveToResponse.get(bestAction);
     }
 
     @Override
